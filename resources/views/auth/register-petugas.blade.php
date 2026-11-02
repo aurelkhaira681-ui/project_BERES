@@ -40,13 +40,14 @@
     <div class="hidden md:flex relative flex-col justify-between gap-8 overflow-hidden bg-gradient-to-br from-[#173a76] via-[#1d478c] to-[#2a5aa8] text-white p-8 xl:p-12">
         <div class="absolute top-6 right-8 w-9 h-9 rounded-full bg-[#4a7bd0]/40"></div>
         <div class="absolute -bottom-28 -right-20 w-80 h-60 rounded-full bg-white/5 rotate-[-12deg]"></div>
+        @include('partials.bubbles')
 
         <div class="relative">
             <a href="{{ route('login') }}" aria-label="Kembali ke halaman masuk" title="Kembali"
                class="mb-5 inline-flex w-11 h-11 items-center justify-center rounded-lg bg-white/15 hover:bg-white/25 transition">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
             </a>
-            <h1 class="text-2xl xl:text-3xl font-extrabold tracking-tight">Buat Akun Petugas</h1>
+            <h1 class="text-2xl xl:text-3xl font-extrabold tracking-tight" data-typewriter>Buat Akun Petugas</h1>
             <p class="text-white/75 mt-2 max-w-xs text-sm xl:text-base leading-relaxed">Akun petugas dipakai untuk memverifikasi dan menindaklanjuti aduan sarana sekolah.</p>
         </div>
 
@@ -90,7 +91,7 @@
                 Kembali
             </a>
 
-            <h2 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#142b4e] leading-tight">Daftar Admin / Petugas</h2>
+            <h2 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#142b4e] leading-tight" data-typewriter data-start="500">Daftar Admin / Petugas</h2>
             <p class="text-slate-500 text-sm mt-1 mb-6">Akun pengelola aduan sarana sekolah</p>
 
             @unless($aktif)

@@ -33,7 +33,7 @@
 {{-- Header --}}
 <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
     <div class="flex items-center gap-3">
-        <span class="text-4xl leading-none">👋</span>
+        <span class="text-4xl leading-none inline-block b-wave">👋</span>
         <div>
             <h1 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#0f2d5c]">Selamat datang, {{ $namaDepan }}!</h1>
             <p class="text-[#5d7aa8] mt-0.5 text-sm sm:text-base">Kelola pengaduan sarana sekolah dengan mudah dan cepat.</p>
@@ -49,6 +49,8 @@
         <div class="flex items-center gap-2 rounded-xl bg-white/80 border border-slate-100 px-4 h-11 text-sm font-semibold text-[#0f2d5c]">
             <svg class="w-4 h-4 text-[#1f6fe5]" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zm-2 8h14v9H5z"/></svg>
             {{ $tanggal }}
+            <span class="text-[#8aa6d3]">·</span>
+            <span data-clock class="tabular-nums">--:--:-- WIB</span>
         </div>
     </div>
 </div>
@@ -56,7 +58,7 @@
 {{-- Kartu statistik --}}
 <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-5">
     @foreach($kartu as $i => [$l1, $l2, $angka, $bg, $ikonBg, $ikon])
-        <div class="relative overflow-hidden rounded-2xl border bg-gradient-to-br {{ $bg }} px-4 py-3.5">
+        <div class="b-lift relative overflow-hidden rounded-2xl border bg-gradient-to-br {{ $bg }} px-4 py-3.5">
             @if($i === 0)
                 <span class="absolute top-2 right-2 text-[10px] font-bold rounded-full px-1.5 py-0.5 {{ $tren >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600' }}">{{ $tren >= 0 ? '↑' : '↓' }} {{ abs($tren) }}%</span>
             @endif
@@ -65,11 +67,40 @@
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">{!! $ikon !!}</svg>
                 </div>
                 <div class="min-w-0">
-                    <p class="text-2xl font-extrabold text-[#0f2d5c] leading-none">{{ $angka }}</p>
+                    <p class="text-2xl font-extrabold text-[#0f2d5c] leading-none" data-count="{{ $angka }}">{{ $angka }}</p>
                     <p class="text-xs text-[#40608f] mt-1 leading-tight">{{ $l1 }}@if($l2) {{ $l2 }}@endif</p>
                 </div>
             </div>
         </div>
+    @endforeach
+</div>
+
+{{-- Aksi cepat --}}
+@php
+    $aksi = [
+        [route('admin.aduan.index', ['status' => 'pending']), 'Verifikasi Aduan', $stats['menunggu'] > 0 ? $stats['menunggu'] . ' aduan menunggu giliran' : 'Semua aduan sudah ditinjau', 'bg-[#f5a524]', '<path d="M5 12.5l4.5 4.5L19 7.5"/>', $stats['menunggu']],
+        [route('admin.master-data'), 'Kelola Master Data', 'Kategori kerusakan & lokasi', 'bg-[#1f6fe5]', '<path d="M3 5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>', 0],
+        [route('admin.aduan.export'), 'Ekspor Data', 'Unduh rekap aduan (CSV)', 'bg-[#22b36b]', '<path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>', 0],
+    ];
+@endphp
+<div class="grid sm:grid-cols-3 gap-3 sm:gap-4 mb-5">
+    @foreach($aksi as [$urlAksi, $judulAksi, $ketAksi, $warnaAksi, $ikonAksi, $badgeAksi])
+        <a href="{{ $urlAksi }}" class="{{ $card }} b-lift group flex items-center gap-3 px-4 py-3.5">
+            <span class="w-10 h-10 shrink-0 rounded-xl {{ $warnaAksi }} text-white flex items-center justify-center transition duration-300 group-hover:rotate-6 group-hover:scale-110">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">{!! $ikonAksi !!}</svg>
+            </span>
+            <span class="min-w-0 flex-1">
+                <span class="block font-bold text-sm text-[#0f2d5c]">{{ $judulAksi }}</span>
+                <span class="block text-xs text-[#5d7aa8] truncate">{{ $ketAksi }}</span>
+            </span>
+            @if($badgeAksi > 0)
+                <span class="relative flex h-5 min-w-[20px]">
+                    <span class="absolute inset-0 rounded-full bg-[#ef4b43] opacity-60 animate-ping"></span>
+                    <span class="relative min-w-[20px] h-5 px-1.5 rounded-full bg-[#ef4b43] text-white text-[11px] font-bold flex items-center justify-center">{{ $badgeAksi }}</span>
+                </span>
+            @endif
+            <svg class="w-4 h-4 shrink-0 text-slate-400 transition duration-300 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+        </a>
     @endforeach
 </div>
 
@@ -101,7 +132,7 @@
                 <div class="absolute inset-0 flex items-end justify-around px-1 sm:px-3">
                     @foreach($grafik as $g)
                         @php $jml = $g['selesai'] + $g['pending'] + $g['ditolak']; @endphp
-                        <div class="relative w-7 sm:w-10 h-full flex flex-col-reverse justify-start" title="{{ $g['label'] }}: {{ $jml }} aduan">
+                        <div class="b-bar relative w-7 sm:w-10 h-full flex flex-col-reverse justify-start" title="{{ $g['label'] }}: {{ $jml }} aduan">
                             @if($g['selesai'])<div class="bg-[#2f7cf6]" style="height: {{ $g['selesai'] / $skalaMaks * 100 }}%"></div>@endif
                             @if($g['pending'])<div class="bg-[#f5a524]" style="height: {{ $g['pending'] / $skalaMaks * 100 }}%"></div>@endif
                             @if($g['ditolak'])<div class="bg-[#ef4b43]" style="height: {{ $g['ditolak'] / $skalaMaks * 100 }}%"></div>@endif
@@ -122,9 +153,9 @@
             Status Pengaduan
         </h2>
         <div class="flex flex-wrap sm:flex-nowrap items-center justify-center gap-5">
-            <div class="relative w-36 h-36 shrink-0 rounded-full" style="background: conic-gradient({{ $gradien }})">
+            <div class="b-pop relative w-36 h-36 shrink-0 rounded-full" style="background: conic-gradient({{ $gradien }})">
                 <div class="absolute inset-[22px] rounded-full bg-white flex flex-col items-center justify-center">
-                    <span class="text-3xl font-extrabold text-[#0f2d5c] leading-none">{{ $donut['total'] }}</span>
+                    <span class="text-3xl font-extrabold text-[#0f2d5c] leading-none" data-count="{{ $donut['total'] }}">{{ $donut['total'] }}</span>
                     <span class="text-xs text-[#5d7aa8] mt-1">Total</span>
                 </div>
             </div>

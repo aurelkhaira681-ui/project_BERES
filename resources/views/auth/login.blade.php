@@ -28,6 +28,7 @@
         <div class="absolute top-6 right-24 w-10 h-10 rounded-full bg-[#2a5091]/70"></div>
         <div class="absolute -bottom-6 -left-6 w-14 h-14 rounded-full bg-[#2a5091]/70"></div>
         <div class="absolute -bottom-40 -right-24 w-[480px] h-[300px] rounded-full bg-[#2a5bb0]/40 rotate-[-12deg]"></div>
+        @include('partials.bubbles')
 
         <div class="relative">
             <div class="flex items-center gap-5">
@@ -38,7 +39,7 @@
                 </div>
             </div>
 
-            <p class="mt-8 text-xl xl:text-2xl leading-snug max-w-md text-white/95">
+            <p class="mt-8 text-xl xl:text-2xl leading-snug max-w-md text-white/95" data-typewriter data-speed="24" data-start="600">
                 Laporkan kerusakan sarana sekolah, pantau statusnya sampai selesai.
             </p>
             <div class="mt-4 h-1 w-16 rounded-full bg-[#4a86e8]"></div>
@@ -91,7 +92,7 @@
         <div class="absolute -top-40 -right-32 w-[420px] h-[420px] rounded-full bg-[#e3ecfb]"></div>
         <div class="absolute -bottom-52 -right-40 w-[460px] h-[460px] rounded-full bg-[#e9f0fc]"></div>
 
-        <div class="relative w-full max-w-xl">
+        <div class="relative w-full max-w-xl" data-stagger>
 
             {{-- brand (HP & tablet, saat panel kiri disembunyikan) --}}
             <div class="lg:hidden flex items-center gap-3 mb-8">
@@ -102,7 +103,7 @@
                 </div>
             </div>
 
-            <h2 class="text-4xl sm:text-[44px] font-extrabold tracking-tight text-[#142b4e] leading-tight">Masuk ke Akun</h2>
+            <h2 class="text-4xl sm:text-[44px] font-extrabold tracking-tight text-[#142b4e] leading-tight" data-typewriter data-speed="60">Masuk ke Akun</h2>
             <p class="text-slate-500 text-base sm:text-lg mt-2 mb-8">Pantau & ajukan aduan sarana sekolahmu di sini.</p>
 
             @if(session('status'))

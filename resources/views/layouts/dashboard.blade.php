@@ -163,5 +163,6 @@
             window.matchMedia('(min-width: 768px)').addEventListener('change', function (e) { if (e.matches) closeMenu(); });
         })();
     </script>
+    @include('partials.animasi')
 </body>
 </html>
