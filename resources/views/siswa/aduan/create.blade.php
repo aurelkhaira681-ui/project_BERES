@@ -52,6 +52,7 @@
                         <option value="{{ $l->id }}" {{ (string) old('lokasi_id') === (string) $l->id ? 'selected' : '' }}>{{ $l->nama_lengkap }}</option>
                     @endforeach
                 </select>
+                @include('partials.denah-picker', ['lokasi' => $lokasi])
             </div>
             <div>
                 <label for="tanggal_kejadian" class="block text-sm font-bold text-[#0f2d5c] mb-2">Tanggal & Waktu Kejadian</label>

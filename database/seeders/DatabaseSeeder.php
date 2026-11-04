@@ -41,11 +41,11 @@ class DatabaseSeeder extends Seeder
             ['nama' => 'Lainnya', 'icon' => '🧩'],
         ])->map(fn ($item) => KategoriKerusakan::create($item));
 
-        $lokasi = collect([
-            ['nama_ruangan' => 'Lab RPL', 'lantai' => 'Lantai 2'],
-            ['nama_ruangan' => 'Toilet Putri', 'lantai' => 'Lantai 2'],
-            ['nama_ruangan' => 'Ruang Kelas XII RPL B', 'lantai' => 'Lantai 1'],
-        ])->map(fn ($item) => Lokasi::create($item));
+        // Daftar ruangan diambil dari denah sekolah (config/denah.php)
+        $this->call(LokasiDenahSeeder::class);
+
+        $lokasi = collect(['Lab. RPL 1', 'WC (dekat Lab. RPL 4)', 'Rg 1.07'])
+            ->map(fn ($nama) => Lokasi::where('nama_ruangan', $nama)->firstOrFail());
 
         Aduan::create([
             'user_id' => $siswa->id,
