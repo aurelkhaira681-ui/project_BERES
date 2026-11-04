@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Aduan;
 use App\Models\KategoriKerusakan;
 use App\Models\Lokasi;
+use App\Models\Teknisi;
 use Illuminate\Http\Request;
 
 class AduanController extends Controller
@@ -13,7 +14,7 @@ class AduanController extends Controller
     // Query dasar + filter (dipakai halaman daftar dan ekspor)
     private function filtered(Request $request)
     {
-        $query = Aduan::with(['user', 'kategori', 'lokasi'])->latest();
+        $query = Aduan::with(['user', 'kategori', 'lokasi', 'teknisi'])->latest();
 
         if ($search = $request->query('q')) {
             $query->where(function ($q) use ($search) {
@@ -28,6 +29,9 @@ class AduanController extends Controller
         }
         if ($lokasi = $request->query('lokasi')) {
             $query->where('lokasi_id', $lokasi);
+        }
+        if ($teknisi = $request->query('teknisi')) {
+            $teknisi === 'belum' ? $query->whereNull('teknisi_id') : $query->where('teknisi_id', $teknisi);
         }
 
         if ($status = $request->query('status')) {
@@ -60,8 +64,9 @@ class AduanController extends Controller
 
         $kategoriList = KategoriKerusakan::orderBy('nama')->get();
         $lokasiList = Lokasi::orderBy('nama_ruangan')->get();
+        $teknisiList = Teknisi::orderBy('nama')->get();
 
-        return view('admin.aduan.index', compact('aduan', 'stats', 'kategoriList', 'lokasiList'));
+        return view('admin.aduan.index', compact('aduan', 'stats', 'kategoriList', 'lokasiList', 'teknisiList'));
     }
 
     // Ekspor CSV sesuai filter yang sedang aktif
@@ -72,7 +77,7 @@ class AduanController extends Controller
         return response()->streamDownload(function () use ($rows) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF"); // BOM agar terbaca benar di Excel
-            fputcsv($out, ['No. Tiket', 'Siswa', 'Kelas', 'Kategori', 'Lokasi', 'Tanggal', 'Status', 'Deskripsi']);
+            fputcsv($out, ['No. Tiket', 'Siswa', 'Kelas', 'Kategori', 'Lokasi', 'Teknisi', 'Tanggal', 'Status', 'Deskripsi']);
             foreach ($rows as $a) {
                 fputcsv($out, [
                     $a->kode_tiket,
@@ -80,6 +85,7 @@ class AduanController extends Controller
                     $a->user->kelas,
                     $a->kategori->nama,
                     $a->lokasi->nama_ruangan,
+                    $a->teknisi?->nama ?? '-',
                     $a->tanggal_kejadian->format('d-m-Y'),
                     $a->statusLabel(),
                     $a->deskripsi,
@@ -92,21 +98,60 @@ class AduanController extends Controller
     // Detail tiket untuk verifikasi (Setujui/Tolak/Selesai)
     public function show(Aduan $aduan)
     {
-        $aduan->load(['user', 'kategori', 'lokasi']);
+        $aduan->load(['user', 'kategori', 'lokasi', 'teknisi']);
         $totalAduanPelapor = $aduan->user->aduan()->count();
+        [$calonTeknisi, $fallbackTeknisi] = $this->calonTeknisi($aduan);
 
-        return view('admin.aduan.show', compact('aduan', 'totalAduanPelapor'));
+        return view('admin.aduan.show', compact('aduan', 'totalAduanPelapor', 'calonTeknisi', 'fallbackTeknisi'));
+    }
+
+    // Teknisi yang boleh ditugaskan: sejurusan dengan lokasi (lokasi umum = semua teknisi aktif).
+    // Jika tidak ada teknisi aktif di jurusan itu (mis. semua cuti), tampilkan semua teknisi aktif.
+    private function calonTeknisi(Aduan $aduan): array
+    {
+        $semua = Teknisi::where('aktif', true)->beban()->orderBy('aktif_count')->orderBy('nama')->get();
+        $jurusan = $aduan->lokasi->jurusan;
+
+        if (blank($jurusan)) {
+            return [$semua, false];
+        }
+
+        $sejurusan = $semua->where('jurusan', $jurusan)->values();
+
+        return $sejurusan->isNotEmpty() ? [$sejurusan, false] : [$semua, true];
+    }
+
+    public function tugaskan(Request $request, Aduan $aduan)
+    {
+        $request->validate(['teknisi_id' => ['required', 'integer']]);
+        abort_unless(in_array($aduan->status, ['pending', 'approved']), 403);
+
+        $aduan->loadMissing('lokasi');
+        [$calon] = $this->calonTeknisi($aduan);
+        $teknisi = $calon->firstWhere('id', (int) $request->input('teknisi_id'));
+
+        if (! $teknisi) {
+            return back()->with('error', __('Teknisi tidak sesuai dengan jurusan lokasi aduan.'));
+        }
+
+        $aduan->update(['teknisi_id' => $teknisi->id]);
+
+        return back()->with('success', __('Teknisi :nama ditugaskan.', ['nama' => $teknisi->nama]));
     }
 
     public function setujui(Request $request, Aduan $aduan)
     {
+        if (! $aduan->teknisi_id) {
+            return back()->with('error', __('Tugaskan teknisi terlebih dahulu sebelum menyetujui aduan.'));
+        }
+
         $aduan->update([
             'status' => 'approved',
             'catatan_admin' => $request->input('catatan_admin'),
             'diverifikasi_at' => now(),
         ]);
 
-        return back()->with('success', "Aduan {$aduan->kode_tiket} disetujui.");
+        return back()->with('success', __('Aduan :kode disetujui.', ['kode' => $aduan->kode_tiket]));
     }
 
     public function tolak(Request $request, Aduan $aduan)
@@ -119,25 +164,25 @@ class AduanController extends Controller
             'diverifikasi_at' => now(),
         ]);
 
-        return back()->with('success', "Aduan {$aduan->kode_tiket} ditolak.");
+        return back()->with('success', __('Aduan :kode ditolak.', ['kode' => $aduan->kode_tiket]));
     }
 
     public function selesai(Aduan $aduan)
     {
-        abort_unless($aduan->status === 'approved', 403, 'Hanya aduan yang sudah disetujui yang dapat ditandai selesai.');
+        abort_unless($aduan->status === 'approved', 403, __('Hanya aduan yang sudah disetujui yang dapat ditandai selesai.'));
 
         $aduan->update([
             'status' => 'selesai',
             'selesai_at' => now(),
         ]);
 
-        return back()->with('success', "Aduan {$aduan->kode_tiket} ditandai selesai.");
+        return back()->with('success', __('Aduan :kode ditandai selesai.', ['kode' => $aduan->kode_tiket]));
     }
 
     public function destroy(Aduan $aduan)
     {
         $aduan->delete();
 
-        return redirect()->route('admin.dashboard')->with('success', 'Tiket aduan dihapus.');
+        return redirect()->route('admin.dashboard')->with('success', __('Tiket aduan dihapus.'));
     }
 }

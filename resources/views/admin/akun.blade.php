@@ -81,7 +81,7 @@
         </div>
 
         <div class="flex items-center gap-4 mt-4 mb-5">
-            <div class="w-[72px] h-[72px] shrink-0 rounded-full bg-[#b9d0ee] text-[#0f2d5c] flex items-center justify-center text-3xl font-semibold">{{ $initials }}</div>
+            @include('partials.foto-avatar', ['user' => $user, 'initials' => $initials])
             <div class="min-w-0">
                 <p class="font-bold text-lg text-[#0f2d5c] truncate">{{ $user->name }}</p>
                 <p class="text-sm text-[#5d7aa8]">Admin / Petugas</p>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Aduan;
+use App\Models\Teknisi;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -58,6 +59,8 @@ class DashboardController extends Controller
 
         $aktivitas = Aduan::with('user')->latest('updated_at')->take(5)->get();
 
-        return view('admin.dashboard', compact('stats', 'grafik', 'skalaMaks', 'donut', 'aktivitas'));
+        $bebanTeknisi = Teknisi::beban()->orderByDesc('aktif')->orderByDesc('aktif_count')->orderBy('nama')->get();
+
+        return view('admin.dashboard', compact('stats', 'grafik', 'skalaMaks', 'donut', 'aktivitas', 'bebanTeknisi'));
     }
 }

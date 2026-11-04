@@ -25,7 +25,7 @@ class AkunController extends Controller
 
         $user->update($data);
 
-        return back()->with('success', 'Profil berhasil diperbarui.');
+        return back()->with('success', __('Profil berhasil diperbarui.'));
     }
 
     public function password(Request $request)
@@ -37,6 +37,6 @@ class AkunController extends Controller
 
         $request->user()->update(['password' => $data['password']]);
 
-        return back()->with('success', 'Password berhasil diubah.');
+        return back()->with('success', __('Password berhasil diubah.'));
     }
 }

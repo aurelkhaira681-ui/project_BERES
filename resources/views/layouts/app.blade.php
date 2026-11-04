@@ -8,6 +8,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
     @yield('content')
+    @include('partials.locale-cookie')
     @include('partials.animasi')
 </body>
 </html>

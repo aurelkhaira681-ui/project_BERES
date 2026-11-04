@@ -22,6 +22,7 @@ class User extends Authenticatable
         'no_presensi',
         'konsentrasi_keahlian',
         'no_hp',
+        'foto',
     ];
 
     protected $hidden = [
@@ -35,6 +36,14 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /** URL foto profil (null jika belum ada). Parameter ?v= memaksa browser memuat ulang saat foto diganti. */
+    public function fotoUrl(): ?string
+    {
+        return $this->foto
+            ? asset('storage/' . $this->foto) . '?v=' . ($this->updated_at?->timestamp ?? 0)
+            : null;
     }
 
     public function isAdmin(): bool

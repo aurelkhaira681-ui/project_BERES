@@ -217,4 +217,35 @@
     </p>
     <a href="{{ route('admin.aduan.index') }}" class="rounded-xl bg-[#0f3a9a] hover:bg-[#0b2f7e] text-white text-sm font-bold px-5 py-2.5 transition">Lihat Semua Aduan →</a>
 </div>
+
+{{-- Beban teknisi --}}
+@php
+    $bebanMaks = max(1, (int) $bebanTeknisi->where('aktif', true)->max('aktif_count'));
+@endphp
+<div class="{{ $card }} p-5 mb-5">
+    <div class="flex items-center justify-between gap-3 mb-4">
+        <div>
+            <h2 class="font-bold text-[#0f2d5c]">Beban Teknisi</h2>
+            <p class="text-xs text-[#5d7aa8] mt-0.5">Aduan yang masih menunggu atau diproses per teknisi</p>
+        </div>
+        <a href="{{ route('admin.master-data', ['tab' => 'teknisi']) }}" class="text-sm font-semibold text-[#1f6fe5] hover:underline whitespace-nowrap">Kelola teknisi</a>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-x-8 gap-y-3.5">
+        @forelse($bebanTeknisi as $t)
+            @php $lebar = $t->aktif ? round($t->aktif_count / $bebanMaks * 100) : 0; $berat = $t->aktif && $t->aktif_count >= 4; @endphp
+            <div class="{{ $t->aktif ? '' : 'opacity-60' }}">
+                <div class="flex items-center justify-between text-sm mb-1.5">
+                    <span class="font-semibold text-[#0f2d5c]">{{ $t->nama }} <span class="text-xs font-normal text-slate-400">· {{ \App\Models\Teknisi::singkat($t->jurusan) }}@unless($t->aktif) · cuti @endunless</span></span>
+                    <span class="font-bold {{ $berat ? 'text-[#c97f00]' : 'text-[#0f2d5c]' }}">{{ $t->aktif_count }}</span>
+                </div>
+                <div class="h-2 rounded-full bg-[#e6effb] overflow-hidden">
+                    <div class="h-2 rounded-full {{ $berat ? 'bg-[#f5a524]' : 'bg-[#2f7cf6]' }}" style="width: {{ $lebar }}%; transform-origin: left"></div>
+                </div>
+            </div>
+        @empty
+            <p class="text-sm text-slate-400">Belum ada teknisi.</p>
+        @endforelse
+    </div>
+</div>
+
 @endsection

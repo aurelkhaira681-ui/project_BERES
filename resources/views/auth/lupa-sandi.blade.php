@@ -33,8 +33,8 @@
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_24px_rgba(20,50,105,0.08)] p-6 sm:p-8">
-            <h1 class="text-2xl font-extrabold tracking-tight text-[#142b4e]" data-typewriter>Lupa Kata Sandi</h1>
-            <p class="text-slate-500 text-sm mt-1.5 mb-6">Verifikasi identitasmu, lalu buat kata sandi baru.</p>
+            <h1 class="text-2xl font-extrabold tracking-tight text-[#142b4e]">Lupa Kata Sandi</h1>
+            <p class="text-slate-500 text-sm mt-1.5 mb-6" data-typewriter>Verifikasi identitasmu, lalu buat kata sandi baru.</p>
 
             @if($errors->any())
                 <div class="mb-5 rounded-xl bg-red-50 text-red-600 border border-red-200 px-4 py-3 text-sm">

@@ -12,7 +12,7 @@ class Lokasi extends Model
 
     protected $table = 'lokasi';
 
-    protected $fillable = ['nama_ruangan', 'lantai'];
+    protected $fillable = ['kode', 'nama_ruangan', 'lantai', 'kelompok', 'jurusan'];
 
     public function aduan(): HasMany
     {

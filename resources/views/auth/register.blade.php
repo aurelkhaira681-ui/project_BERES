@@ -30,8 +30,8 @@
 
     // name, label, ikon, placeholder, tipe, lebar penuh?, atribut tambahan
     $fields = [
-        ['name' => 'name',                  'label' => 'Nama Lengkap',          'icon' => 'user',  'ph' => 'Aurel Khaira Lubna',      'type' => 'text',     'full' => true,  'ac' => 'name'],
-        ['name' => 'nisn',                  'label' => 'NISN',                  'icon' => 'id',    'ph' => '0071234589',              'type' => 'text',     'full' => false, 'ac' => 'off', 'mode' => 'numeric'],
+        ['name' => 'name',                  'label' => 'Nama Lengkap',          'icon' => 'user',  'ph' => 'Ditulis sesuai data sekolah','type' => 'text',     'full' => true,  'ac' => 'name'],
+        ['name' => 'nisn',                  'label' => 'NISN (10 digit)',        'icon' => 'id',    'ph' => 'Contoh: 0086944390',                    'type' => 'text',     'full' => false, 'ac' => 'off', 'mode' => 'numeric'],
         ['name' => 'kelas',                 'label' => 'Kelas',                 'icon' => 'cap',   'ph' => 'XII RPL B',               'type' => 'text',     'full' => false, 'ac' => 'off'],
         ['name' => 'no_presensi',           'label' => 'No. Presensi',          'icon' => 'id',    'ph' => '11',                      'type' => 'text',     'full' => false, 'ac' => 'off', 'mode' => 'numeric'],
         ['name' => 'konsentrasi_keahlian',  'label' => 'Konsentrasi Keahlian',  'icon' => 'work',  'ph' => 'Rekayasa Perangkat Lunak','type' => 'text',     'full' => false, 'ac' => 'off'],
@@ -45,48 +45,20 @@
 <div class="reg-font min-h-screen grid grid-cols-1 md:grid-cols-2">
 
     {{-- ================= PANEL KIRI ================= --}}
-    <div class="hidden md:flex relative flex-col justify-between gap-8 overflow-hidden bg-gradient-to-br from-[#173a76] via-[#1d478c] to-[#2a5aa8] text-white p-8 xl:p-12">
-        <div class="absolute top-6 right-8 w-9 h-9 rounded-full bg-[#4a7bd0]/40"></div>
-        <div class="absolute -bottom-28 -right-20 w-80 h-60 rounded-full bg-white/5 rotate-[-12deg]"></div>
-        @include('partials.bubbles')
-
-        <div class="relative">
-            <a href="{{ route('login') }}" aria-label="Kembali ke halaman masuk" title="Kembali"
-               class="mb-5 inline-flex w-11 h-11 items-center justify-center rounded-lg bg-white/15 hover:bg-white/25 transition">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
-            </a>
-            <h1 class="text-2xl xl:text-3xl font-extrabold tracking-tight" data-typewriter>Buat Akun Siswa</h1>
-            <p class="text-white/75 mt-2 max-w-xs text-sm xl:text-base leading-relaxed">Lengkapi biodata kamu sekali saja — dipakai otomatis setiap kali mengajukan aduan.</p>
-        </div>
-
-        {{-- fitur + ilustrasi --}}
-        <div class="relative grid grid-cols-5 items-center gap-3">
-            <div class="col-span-3 space-y-6">
-                <div class="flex gap-3">
-                    <svg class="w-6 h-6 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2.5" fill="#5c9cf2"/><circle cx="8" cy="11" r="2" fill="#fff"/><path d="M5.5 16c.6-1.6 2-2 2.5-2s1.9.4 2.5 2M13 10h5M13 13.5h5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
-                    <div>
-                        <p class="font-bold text-[13px] xl:text-[15px] leading-tight">Biodata Tersimpan</p>
-                        <p class="text-white/70 text-xs xl:text-[13px] mt-1 leading-relaxed">Nama, kelas, & kontak otomatis terisi di setiap tiket.</p>
-                    </div>
-                </div>
-                <div class="flex gap-3">
-                    <svg class="w-6 h-6 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none"><path d="M8 11V7.5a4 4 0 0 1 8 0V11" stroke="#d99a1f" stroke-width="2.2" stroke-linecap="round"/><rect x="4.5" y="10.5" width="15" height="10.5" rx="2.5" fill="#f5a623"/><circle cx="12" cy="15.2" r="1.5" fill="#8a5a00"/><path d="M12 16v2" stroke="#8a5a00" stroke-width="1.6" stroke-linecap="round"/></svg>
-                    <div>
-                        <p class="font-bold text-[13px] xl:text-[15px] leading-tight">Akun Terverifikasi</p>
-                        <p class="text-white/70 text-xs xl:text-[13px] mt-1 leading-relaxed">Terhubung dengan data induk siswa sekolah.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-span-2">
-                <div class="reg-illus aspect-[9/5] overflow-hidden">
-                    <img src="{{ asset('images/login-illustration.jpg') }}" alt="" class="h-full w-auto max-w-none select-none" draggable="false">
-                </div>
-            </div>
-        </div>
-
-        <p class="relative text-white/50 text-xs xl:text-sm">© {{ date('Y') }} SMK Negeri 5 Surakarta</p>
-    </div>
+    @include('partials.reg-panel', [
+        'judul'      => 'Buat Akun Siswa',
+        'sub'        => 'Lengkapi biodata kamu sekali saja — dipakai otomatis setiap kali mengajukan aduan.',
+        'langkah'    => ['Daftar', 'Masuk', 'Lapor'],
+        'floatJudul' => 'Akun siap dipakai',
+        'floatKet'   => 'Yuk, mulai melapor!',
+        'chip'       => 'Status aduan: Diproses',
+        'fitur'      => [
+            ['card', 'Biodata Tersimpan', 'Nama, kelas, & kontak otomatis terisi di setiap tiket.'],
+            ['lock', 'Akun Terverifikasi', 'Terhubung dengan data induk siswa sekolah.'],
+            ['bolt', 'Pantau Real-time', 'Lihat status aduanmu dari menunggu sampai selesai.'],
+            ['bell', 'Notifikasi Status', 'Dapat lencana saat aduanmu diperbarui petugas.'],
+        ],
+    ])
 
     {{-- ================= PANEL KANAN: FORM ================= --}}
     <div class="relative flex items-center justify-center overflow-hidden bg-[#f6f9fd] px-5 py-8 sm:px-10">
@@ -101,7 +73,7 @@
                 Kembali
             </a>
 
-            <h2 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#142b4e] leading-tight" data-typewriter data-start="500">Lengkapi Data Diri</h2>
+            <h2 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#142b4e] leading-tight">Lengkapi Data Diri</h2>
             <p class="text-slate-500 text-sm mt-1 mb-6">Biodata Siswa</p>
 
             @if($errors->any())

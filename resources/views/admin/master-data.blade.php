@@ -8,6 +8,7 @@
     $tabs  = [
         'kategori' => ['Kategori Kerusakan', $kategori->count()],
         'lokasi'   => ['Lokasi / Ruangan', $lokasi->count()],
+        'teknisi'  => ['Teknisi', $teknisi->count()],
         'pengguna' => ['Data Pengguna', $pengguna->total()],
     ];
     $tombolEdit  = 'w-8 h-8 inline-flex items-center justify-center rounded-lg bg-[#1f6fe5] hover:bg-[#1a5ec4] text-white';
@@ -24,7 +25,7 @@
         </span>
         <div>
             <h1 class="text-2xl font-extrabold tracking-tight text-[#0f2d5c]">Master Data</h1>
-            <p class="text-[#5d7aa8] text-sm">Kelola kategori, lokasi, dan data pengguna</p>
+            <p class="text-[#5d7aa8] text-sm">Kelola kategori, lokasi, teknisi, dan data pengguna</p>
         </div>
     </div>
     <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -81,9 +82,9 @@
     </table></div>
 
 @elseif($tab === 'lokasi')
-    <div class="overflow-x-auto"><table id="tabel-data" class="w-full text-sm min-w-[520px]">
+    <div class="overflow-x-auto"><table id="tabel-data" class="w-full text-sm min-w-[620px]">
         <thead><tr class="text-left text-[#40608f] text-xs font-bold border-b border-slate-100">
-            <th class="py-3 pr-3 w-10">No.</th><th class="pr-3">Nama Ruangan</th><th class="pr-3">Lantai</th><th class="pr-3">Jumlah Aduan</th><th class="text-center">Aksi</th>
+            <th class="py-3 pr-3 w-10">No.</th><th class="pr-3">Nama Ruangan</th><th class="pr-3">Lantai</th><th class="pr-3">Jurusan</th><th class="pr-3">Jumlah Aduan</th><th class="text-center">Aksi</th>
         </tr></thead>
         <tbody>
         @forelse($lokasi as $l)
@@ -91,11 +92,18 @@
                 <td class="py-3.5 pr-3 text-[#40608f]">{{ $loop->iteration }}</td>
                 <td class="pr-3 font-semibold text-[#0f2d5c]">{{ $l->nama_ruangan }}</td>
                 <td class="pr-3">{{ $l->lantai ?: '-' }}</td>
+                <td class="pr-3">
+                    @if($l->jurusan)
+                        <span class="rounded-full px-3 py-1 text-xs font-semibold bg-[#e6effb] text-[#1d4f9c]">{{ \App\Models\Teknisi::singkat($l->jurusan) }}</span>
+                    @else
+                        <span class="text-xs text-slate-400">Umum (ditentukan petugas)</span>
+                    @endif
+                </td>
                 <td class="pr-3">{{ $l->aduan_count }}</td>
                 <td class="text-center whitespace-nowrap">
                     <button type="button" class="btn-edit {{ $tombolEdit }}" aria-label="Edit {{ $l->nama_ruangan }}"
                             data-action="{{ route('admin.lokasi.update', $l) }}"
-                            data-nama="{{ $l->nama_ruangan }}" data-lantai="{{ $l->lantai }}">{!! $ikonEdit !!}</button>
+                            data-nama="{{ $l->nama_ruangan }}" data-lantai="{{ $l->lantai }}" data-jurusan="{{ $l->jurusan }}">{!! $ikonEdit !!}</button>
                     <form method="POST" action="{{ route('admin.lokasi.destroy', $l) }}" onsubmit="return confirm('Hapus lokasi ini?')" class="inline">
                         @csrf @method('DELETE')
                         <button class="{{ $tombolHapus }}" aria-label="Hapus {{ $l->nama_ruangan }}">{!! $ikonHapus !!}</button>
@@ -103,10 +111,40 @@
                 </td>
             </tr>
         @empty
-            <tr><td colspan="5" class="py-10 text-center text-slate-400">Belum ada lokasi.</td></tr>
+            <tr><td colspan="6" class="py-10 text-center text-slate-400">Belum ada lokasi.</td></tr>
         @endforelse
         </tbody>
     </table></div>
+
+@elseif($tab === 'teknisi')
+    <div class="overflow-x-auto"><table id="tabel-data" class="w-full text-sm min-w-[620px]">
+        <thead><tr class="text-left text-[#40608f] text-xs font-bold border-b border-slate-100">
+            <th class="py-3 pr-3 w-10">No.</th><th class="pr-3">Nama Teknisi</th><th class="pr-3">Jurusan</th><th class="pr-3">Aduan Aktif</th><th class="pr-3">Status</th><th class="text-center">Aksi</th>
+        </tr></thead>
+        <tbody>
+        @forelse($teknisi as $t)
+            <tr class="border-b border-slate-100 last:border-0">
+                <td class="py-3.5 pr-3 text-[#40608f]">{{ $loop->iteration }}</td>
+                <td class="pr-3 font-semibold text-[#0f2d5c]">{{ $t->nama }}</td>
+                <td class="pr-3">{{ $t->jurusan }}</td>
+                <td class="pr-3">{{ $t->aktif_count }}</td>
+                <td class="pr-3"><span class="rounded-full px-3 py-1 text-xs font-semibold {{ $t->aktif ? 'bg-[#d9f4e5] text-[#15935a]' : 'bg-[#fff1d6] text-[#c97f00]' }}">{{ $t->aktif ? 'Aktif' : 'Cuti' }}</span></td>
+                <td class="text-center whitespace-nowrap">
+                    <button type="button" class="btn-edit {{ $tombolEdit }}" aria-label="Edit {{ $t->nama }}"
+                            data-action="{{ route('admin.teknisi.update', $t) }}"
+                            data-nama="{{ $t->nama }}" data-jurusan="{{ $t->jurusan }}" data-aktif="{{ $t->aktif ? 1 : 0 }}">{!! $ikonEdit !!}</button>
+                    <form method="POST" action="{{ route('admin.teknisi.destroy', $t) }}" onsubmit="return confirm('Hapus teknisi ini?')" class="inline">
+                        @csrf @method('DELETE')
+                        <button class="{{ $tombolHapus }}" aria-label="Hapus {{ $t->nama }}">{!! $ikonHapus !!}</button>
+                    </form>
+                </td>
+            </tr>
+        @empty
+            <tr><td colspan="6" class="py-10 text-center text-slate-400">Belum ada teknisi.</td></tr>
+        @endforelse
+        </tbody>
+    </table></div>
+    <p class="mt-4 text-xs text-[#5d7aa8]">Teknisi berstatus Cuti tidak dipilih otomatis. Jurusan lokasi diatur di tab Lokasi / Ruangan.</p>
 
 @else
     <div class="overflow-x-auto"><table id="tabel-data" class="w-full text-sm min-w-[560px]">
@@ -154,11 +192,27 @@
                 <label id="mf-aktif-wrap" class="hidden items-center gap-2 text-sm text-[#0f2d5c] mb-3">
                     <input type="checkbox" name="aktif" id="mf-aktif" value="1" class="w-4 h-4 accent-[#1f6fe5]"> Kategori aktif
                 </label>
-            @else
+            @elseif($tab === 'lokasi')
                 <label class="block text-sm font-bold text-[#0f2d5c] mb-1.5">Nama Ruangan</label>
                 <input name="nama_ruangan" id="mf-nama" required maxlength="100" class="{{ $field }} mb-3">
                 <label class="block text-sm font-bold text-[#0f2d5c] mb-1.5">Lantai</label>
                 <input name="lantai" id="mf-lantai" maxlength="50" class="{{ $field }} mb-3">
+                <label class="block text-sm font-bold text-[#0f2d5c] mb-1.5">Jurusan</label>
+                <select name="jurusan" id="mf-jurusan" class="{{ $field }} mb-1">
+                    <option value="">Umum (ditentukan petugas)</option>
+                    @foreach(\App\Models\Teknisi::JURUSAN as $j)<option value="{{ $j }}">{{ $j }}</option>@endforeach
+                </select>
+                <p class="text-xs text-[#5d7aa8] mb-3">Menentukan teknisi otomatis di formulir siswa.</p>
+            @else
+                <label class="block text-sm font-bold text-[#0f2d5c] mb-1.5">Nama Teknisi</label>
+                <input name="nama" id="mf-nama" required maxlength="100" placeholder="Pak ..." class="{{ $field }} mb-3">
+                <label class="block text-sm font-bold text-[#0f2d5c] mb-1.5">Jurusan</label>
+                <select name="jurusan" id="mf-jurusan" required class="{{ $field }} mb-3">
+                    @foreach(\App\Models\Teknisi::JURUSAN as $j)<option value="{{ $j }}">{{ $j }}</option>@endforeach
+                </select>
+                <label id="mf-aktif-t-wrap" class="hidden items-center gap-2 text-sm text-[#0f2d5c] mb-3">
+                    <input type="checkbox" name="aktif" id="mf-aktif-t" value="1" class="w-4 h-4 accent-[#1f6fe5]"> Teknisi aktif (tidak cuti)
+                </label>
             @endif
 
             <div class="flex justify-end gap-2 mt-2">
@@ -188,7 +242,12 @@
     var method = document.getElementById('mf-method');
     var judul = document.getElementById('mf-judul');
     var tab = @json($tab);
-    var urlTambah = tab === 'kategori' ? @json(route('admin.kategori.store')) : @json(route('admin.lokasi.store'));
+    var urlTambah = {
+        kategori: @json(route('admin.kategori.store')),
+        lokasi: @json(route('admin.lokasi.store')),
+        teknisi: @json(route('admin.teknisi.store'))
+    }[tab];
+    var namaTab = { kategori: 'Kategori', lokasi: 'Lokasi', teknisi: 'Teknisi' }[tab];
     var $ = function (id) { return document.getElementById(id); };
 
     function buka() { modal.classList.remove('hidden'); modal.classList.add('flex'); $('mf-nama').focus(); }
@@ -198,15 +257,22 @@
         form.action = edit ? d.action : urlTambah;
         method.disabled = !edit;
         method.value = 'PUT';
-        judul.textContent = (edit ? 'Edit ' : 'Tambah ') + (tab === 'kategori' ? 'Kategori' : 'Lokasi');
+        judul.textContent = (edit ? 'Edit ' : 'Tambah ') + namaTab;
         $('mf-nama').value = edit ? d.nama : '';
         if (tab === 'kategori') {
             $('mf-icon').value = edit ? (d.icon || '') : '';
             $('mf-aktif').checked = edit ? d.aktif === '1' : true;
             var w = $('mf-aktif-wrap');
             w.classList.toggle('hidden', !edit); w.classList.toggle('flex', edit);
-        } else {
+        } else if (tab === 'lokasi') {
             $('mf-lantai').value = edit ? (d.lantai || '') : '';
+            $('mf-jurusan').value = edit ? (d.jurusan || '') : '';
+        } else {
+            $('mf-jurusan').selectedIndex = 0;
+            if (edit) $('mf-jurusan').value = d.jurusan;
+            $('mf-aktif-t').checked = edit ? d.aktif === '1' : true;
+            var wt = $('mf-aktif-t-wrap');
+            wt.classList.toggle('hidden', !edit); wt.classList.toggle('flex', edit);
         }
         buka();
     }

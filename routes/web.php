@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\FotoProfilController;
 use App\Http\Controllers\Siswa\AduanController as SiswaAduanController;
 use App\Http\Controllers\Siswa\AkunController;
 use App\Http\Controllers\Siswa\DashboardController as SiswaDashboardController;
@@ -10,7 +11,14 @@ use App\Http\Controllers\Admin\AkunController as AdminAkunController;
 use App\Http\Controllers\Admin\MasterDataController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route('login'));
+Route::get('/', function () {
+    // Sudah login -> ke dashboard sesuai peran (mencegah loop redirect /login <-> /)
+    if (auth()->check()) {
+        return redirect()->route(auth()->user()->isAdmin() ? 'admin.dashboard' : 'siswa.dashboard');
+    }
+
+    return redirect()->route('login');
+});
 
 // ===== AUTH =====
 Route::middleware('guest')->group(function () {
@@ -24,6 +32,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/lupa-sandi', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.update');
 });
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+
+// ===== FOTO PROFIL (siswa & admin) =====
+Route::middleware('auth')->group(function () {
+    Route::post('/akun/foto', [FotoProfilController::class, 'update'])->name('akun.foto');
+    Route::delete('/akun/foto', [FotoProfilController::class, 'destroy'])->name('akun.foto.hapus');
+});
 
 // ===== SISWA =====
 Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->group(function () {
@@ -47,6 +61,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/data-aduan', [AdminAduanController::class, 'index'])->name('aduan.index');
     Route::get('/data-aduan/export', [AdminAduanController::class, 'export'])->name('aduan.export');
     Route::get('/data-aduan/{aduan}', [AdminAduanController::class, 'show'])->name('aduan.show');
+    Route::post('/data-aduan/{aduan}/teknisi', [AdminAduanController::class, 'tugaskan'])->name('aduan.teknisi');
     Route::post('/data-aduan/{aduan}/setujui', [AdminAduanController::class, 'setujui'])->name('aduan.setujui');
     Route::post('/data-aduan/{aduan}/tolak', [AdminAduanController::class, 'tolak'])->name('aduan.tolak');
     Route::post('/data-aduan/{aduan}/selesai', [AdminAduanController::class, 'selesai'])->name('aduan.selesai');
@@ -56,6 +71,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/master-data/kategori', [MasterDataController::class, 'storeKategori'])->name('kategori.store');
     Route::put('/master-data/kategori/{kategori}', [MasterDataController::class, 'updateKategori'])->name('kategori.update');
     Route::delete('/master-data/kategori/{kategori}', [MasterDataController::class, 'destroyKategori'])->name('kategori.destroy');
+    Route::post('/master-data/teknisi', [MasterDataController::class, 'storeTeknisi'])->name('teknisi.store');
+    Route::put('/master-data/teknisi/{teknisi}', [MasterDataController::class, 'updateTeknisi'])->name('teknisi.update');
+    Route::delete('/master-data/teknisi/{teknisi}', [MasterDataController::class, 'destroyTeknisi'])->name('teknisi.destroy');
     Route::post('/master-data/lokasi', [MasterDataController::class, 'storeLokasi'])->name('lokasi.store');
     Route::put('/master-data/lokasi/{lokasi}', [MasterDataController::class, 'updateLokasi'])->name('lokasi.update');
     Route::delete('/master-data/lokasi/{lokasi}', [MasterDataController::class, 'destroyLokasi'])->name('lokasi.destroy');

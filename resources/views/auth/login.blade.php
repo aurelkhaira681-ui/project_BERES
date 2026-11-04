@@ -39,7 +39,7 @@
                 </div>
             </div>
 
-            <p class="mt-8 text-xl xl:text-2xl leading-snug max-w-md text-white/95" data-typewriter data-speed="24" data-start="600">
+            <p class="mt-8 text-xl xl:text-2xl leading-snug max-w-md text-white/95">
                 Laporkan kerusakan sarana sekolah, pantau statusnya sampai selesai.
             </p>
             <div class="mt-4 h-1 w-16 rounded-full bg-[#4a86e8]"></div>
@@ -103,8 +103,8 @@
                 </div>
             </div>
 
-            <h2 class="text-4xl sm:text-[44px] font-extrabold tracking-tight text-[#142b4e] leading-tight" data-typewriter data-speed="60">Masuk ke Akun</h2>
-            <p class="text-slate-500 text-base sm:text-lg mt-2 mb-8">Pantau & ajukan aduan sarana sekolahmu di sini.</p>
+            <h2 class="text-4xl sm:text-[44px] font-extrabold tracking-tight text-[#142b4e] leading-tight">Masuk ke Akun</h2>
+            <p class="text-slate-500 text-base sm:text-lg mt-2 mb-8" data-typewriter data-start="700">Pantau & ajukan aduan sarana sekolahmu di sini.</p>
 
             @if(session('status'))
                 <div class="mb-5 rounded-xl bg-green-50 text-green-700 border border-green-200 px-4 py-3 text-sm">{{ session('status') }}</div>
@@ -135,12 +135,12 @@
                     </label>
                 </div>
 
-                {{-- email --}}
-                <label for="email" class="block font-bold text-[#142b4e] mb-2">Email</label>
+                {{-- NISN (siswa) / email (admin) --}}
+                <label for="identitas" id="identitas-label" class="block font-bold text-[#142b4e] mb-2">NISN</label>
                 <div class="relative mb-6">
                     <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" viewBox="0 0 24 24" fill="currentColor"><path d="M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v.4l-9 5.6-9-5.6zM3 9l9 5.6L21 9v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                    <input id="email" type="email" name="email" required value="{{ old('email') }}" autocomplete="email"
-                           placeholder="Masukkan email"
+                    <input id="identitas" type="text" name="identitas" required value="{{ old('identitas') }}" autocomplete="username"
+                           inputmode="numeric" placeholder="Masukkan NISN (10 digit)"
                            class="w-full rounded-xl border border-slate-200 bg-white pl-12 pr-4 py-3.5 shadow-sm outline-none placeholder:text-slate-400 focus:border-[#1e3f7f] focus:ring-2 focus:ring-[#1e3f7f]/25">
                 </div>
 
@@ -186,10 +186,18 @@
     // "Daftar" mengikuti pilihan peran: Siswa -> biodata siswa, Admin/Petugas -> daftar petugas
     (function () {
         var link = document.getElementById('link-daftar');
+        var idLabel = document.getElementById('identitas-label');
+        var idInput = document.getElementById('identitas');
+        function ubahPeran(peran) {
+            var admin = peran === 'admin';
+            link.href = link.dataset[admin ? 'admin' : 'siswa'];
+            idLabel.textContent = admin ? 'Email' : 'NISN';
+            idInput.placeholder = admin ? 'Masukkan email' : 'Masukkan NISN (10 digit)';
+            idInput.inputMode = admin ? 'email' : 'numeric';
+        }
         document.querySelectorAll('input[name="login_as"]').forEach(function (radio) {
-            radio.addEventListener('change', function () {
-                if (radio.checked) link.href = link.dataset[radio.value === 'admin' ? 'admin' : 'siswa'];
-            });
+            radio.addEventListener('change', function () { if (radio.checked) ubahPeran(radio.value); });
+            if (radio.checked) ubahPeran(radio.value);
         });
     })();
 

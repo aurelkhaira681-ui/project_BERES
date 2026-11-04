@@ -18,6 +18,7 @@ class Aduan extends Model
         'user_id',
         'kategori_kerusakan_id',
         'lokasi_id',
+        'teknisi_id',
         'tanggal_kejadian',
         'deskripsi',
         'foto',
@@ -57,6 +58,11 @@ class Aduan extends Model
     public function lokasi(): BelongsTo
     {
         return $this->belongsTo(Lokasi::class);
+    }
+
+    public function teknisi(): BelongsTo
+    {
+        return $this->belongsTo(Teknisi::class, 'teknisi_id');
     }
 
     // Label & warna badge status, dipakai di semua view (mengikuti desain BERES)

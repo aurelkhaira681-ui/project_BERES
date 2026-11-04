@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\SiswaTerdaftar;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,20 +19,30 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $request->validate([
+            'identitas' => ['required', 'string'],
             'password' => ['required'],
             'login_as' => ['required', 'in:siswa,admin'],
         ]);
 
-        if (!Auth::attempt([
-            'email' => $credentials['email'],
-            'password' => $credentials['password'],
-            'role' => $credentials['login_as'],
-        ], $request->boolean('remember'))) {
-            throw ValidationException::withMessages([
-                'email' => 'Email, kata sandi, atau jenis akun tidak sesuai.',
-            ]);
+        $identitas = trim($request->input('identitas'));
+        $remember = $request->boolean('remember');
+
+        if ($request->input('login_as') === 'siswa') {
+            // Siswa masuk dengan NISN. NISN yang tidak ada di daftar resmi sekolah ditolak.
+            $nisn = SiswaTerdaftar::normalisasi($identitas);
+
+            $berhasil = SiswaTerdaftar::where('nisn', $nisn)->exists()
+                && Auth::attempt(['nisn' => $nisn, 'password' => $request->input('password'), 'role' => 'siswa'], $remember);
+
+            $pesan = __('NISN atau kata sandi tidak sesuai, atau NISN belum terdaftar di sekolah.');
+        } else {
+            $berhasil = Auth::attempt(['email' => $identitas, 'password' => $request->input('password'), 'role' => 'admin'], $remember);
+            $pesan = __('Email atau kata sandi tidak sesuai.');
+        }
+
+        if (! $berhasil) {
+            throw ValidationException::withMessages(['identitas' => $pesan]);
         }
 
         $request->session()->regenerate();
@@ -48,22 +59,32 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        // Rapikan NISN dulu (angka saja, 10 digit) supaya "86944390" sama dengan "0086944390"
+        $request->merge(['nisn' => SiswaTerdaftar::normalisasi($request->input('nisn'))]);
+
         $data = $request->validate([
+            'nisn' => ['required', 'digits:10', 'exists:siswa_terdaftar,nisn', 'unique:users,nisn'],
             'name' => ['required', 'string', 'max:255'],
-            'nisn' => ['required', 'string', 'max:20', 'unique:users,nisn'],
             'kelas' => ['required', 'string', 'max:50'],
             'no_presensi' => ['required', 'string', 'max:10'],
             'konsentrasi_keahlian' => ['required', 'string', 'max:100'],
             'no_hp' => ['required', 'string', 'max:20'],
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'confirmed', 'min:8'],
+        ], [
+            'nisn.exists' => __('NISN tidak terdaftar di data siswa sekolah. Periksa kembali atau hubungi petugas.'),
+            'nisn.unique' => __('NISN ini sudah dipakai untuk mendaftar. Silakan masuk, atau gunakan Lupa kata sandi.'),
+            'nisn.digits' => __('NISN harus 10 digit angka.'),
         ]);
+
+        // Nama & kelas diambil dari data resmi sekolah, bukan dari isian siswa
+        $resmi = SiswaTerdaftar::where('nisn', $data['nisn'])->firstOrFail();
 
         $user = User::create([
             'role' => 'siswa',
-            'name' => $data['name'],
-            'nisn' => $data['nisn'],
-            'kelas' => $data['kelas'],
+            'name' => $resmi->nama,
+            'nisn' => $resmi->nisn,
+            'kelas' => $resmi->kelas,
             'no_presensi' => $data['no_presensi'],
             'konsentrasi_keahlian' => $data['konsentrasi_keahlian'],
             'no_hp' => $data['no_hp'],
@@ -72,6 +93,7 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
+        $request->session()->regenerate();
 
         return redirect()->route('siswa.dashboard');
     }
@@ -88,7 +110,7 @@ class AuthController extends Controller
     {
         $kodeBenar = config('beres.petugas_registration_code');
 
-        abort_if(blank($kodeBenar), 403, 'Pendaftaran petugas belum diaktifkan.');
+        abort_if(blank($kodeBenar), 403, __('Pendaftaran petugas belum diaktifkan.'));
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -99,7 +121,7 @@ class AuthController extends Controller
 
         if (!hash_equals((string) $kodeBenar, (string) $data['kode_registrasi'])) {
             throw ValidationException::withMessages([
-                'kode_registrasi' => 'Kode registrasi petugas tidak valid.',
+                'kode_registrasi' => __('Kode registrasi petugas tidak valid.'),
             ]);
         }
 
@@ -137,7 +159,7 @@ class AuthController extends Controller
         $user = User::where('email', $data['email'])->where('role', $data['role'])->first();
 
         if ($data['role'] === 'siswa') {
-            $valid = $user && filled($user->nisn) && hash_equals((string) $user->nisn, (string) $data['nisn']);
+            $valid = $user && filled($user->nisn) && hash_equals((string) $user->nisn, SiswaTerdaftar::normalisasi($data['nisn']));
         } else {
             $kode = config('beres.petugas_registration_code');
             $valid = $user && filled($kode) && hash_equals((string) $kode, (string) $data['kode_registrasi']);
@@ -145,13 +167,15 @@ class AuthController extends Controller
 
         if (!$valid) {
             throw ValidationException::withMessages([
-                'email' => 'Data yang dimasukkan tidak cocok. Periksa kembali email dan ' . ($data['role'] === 'siswa' ? 'NISN' : 'kode registrasi') . '.',
+                'email' => __('Data yang dimasukkan tidak cocok. Periksa kembali email dan :field.', [
+                    'field' => $data['role'] === 'siswa' ? 'NISN' : __('kode registrasi'),
+                ]),
             ]);
         }
 
         $user->update(['password' => $data['password']]); // otomatis di-hash oleh cast model
 
-        return redirect()->route('login')->with('status', 'Kata sandi berhasil diubah. Silakan masuk dengan kata sandi baru.');
+        return redirect()->route('login')->with('status', __('Kata sandi berhasil diubah. Silakan masuk dengan kata sandi baru.'));
     }
 
     public function logout(Request $request)

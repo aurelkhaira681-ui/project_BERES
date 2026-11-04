@@ -1,9 +1,11 @@
 {{--
     Animasi halaman BERES — dipakai di layouts.dashboard & layouts.app.
     Fitur:
-      - Efek mengetik pada judul   : otomatis untuk <h1> pertama di <main>, atau elemen ber-atribut data-typewriter
+      - Efek mengetik (HANYA 1 per halaman, hanya teks kecil / subjudul — judul tebal tidak ikut):
+                                     otomatis untuk <p> tepat di bawah <h1> pertama di <main>,
+                                     atau elemen pertama ber-atribut data-typewriter
                                      (opsional data-speed="ms per huruf", data-start="ms tunda awal")
-      - Muncul bertahap (stagger)  : anak langsung <main> / elemen ber-atribut data-stagger
+      - Muncul bertahap (stagger)  : kartu/blok di <main> / elemen ber-atribut data-stagger (judul & teks yang diketik tidak ikut bergerak)
       - Angka hitung naik          : elemen ber-atribut data-count="123"
       - Cincin progres             : elemen <circle data-ring="persen" class="b-ring">
       - Tips berganti otomatis     : elemen ber-atribut data-rotator (anak-anaknya = isi tips)
@@ -68,8 +70,10 @@
     /* gelembung naik (panel kiri halaman login / daftar) */
     .b-bubbles span { position: absolute; bottom: -50px; border-radius: 9999px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .2); animation: bAnimRise linear infinite; }
 
+    .b-bubbles svg { position: absolute; color: #fff; opacity: .15; animation: bAnimFloat 11s ease-in-out infinite; }
+
     @media (prefers-reduced-motion: reduce) {
-        .b-in, .b-bar, .b-pop, .b-wave, .b-float-soft, .b-nudge, .b-bulb, .b-line, .b-step, .b-blob, .b-ico, .b-bubbles span { animation: none !important; }
+        .b-in, .b-bar, .b-pop, .b-wave, .b-float-soft, .b-nudge, .b-bulb, .b-line, .b-step, .b-blob, .b-ico, .b-bubbles span, .b-bubbles svg { animation: none !important; }
         .b-shine::after, .b-caret::after { display: none; }
         .b-ring, .b-rot > *, .b-lift { transition: none; }
         .b-bubbles { display: none; }
@@ -80,38 +84,36 @@
 (function () {
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    /* ---------- efek mengetik ---------- */
+    /* ---------- efek mengetik (teks kecil, 1 per halaman) ---------- */
     function typewriter(el) {
         var full = el.textContent.replace(/\s+/g, ' ').trim();
         if (!full) return;
         var chars = Array.from(full);                       // aman untuk emoji
-        var speed = parseInt(el.getAttribute('data-speed') || '48', 10);
-        var start = parseInt(el.getAttribute('data-start') || '250', 10);
-        var late  = el.nextElementSibling && el.nextElementSibling.tagName === 'P' ? el.nextElementSibling : null;
+        var speed = parseInt(el.getAttribute('data-speed') || '28', 10);
+        var start = parseInt(el.getAttribute('data-start') || '450', 10);
 
         el.setAttribute('aria-label', full);
         el.style.minHeight = el.offsetHeight + 'px';        // cegah halaman "loncat"
         el.textContent = '';
         el.classList.add('b-caret');
-        if (late) { late.setAttribute('data-late', ''); late.style.opacity = '0'; }
 
         var i = 0;
         function tick() {
             i++;
             el.textContent = chars.slice(0, i).join('');
-            if (i < chars.length) { setTimeout(tick, speed + Math.random() * 22); return; }
-            if (late) { late.style.opacity = ''; late.classList.add('b-in'); }
-            setTimeout(function () { el.classList.remove('b-caret'); el.style.minHeight = ''; }, 1500);
+            if (i < chars.length) { setTimeout(tick, speed + Math.random() * 18); return; }
+            setTimeout(function () { el.classList.remove('b-caret'); el.style.minHeight = ''; }, 1200);
         }
         setTimeout(tick, start);
     }
 
     /* ---------- muncul bertahap ---------- */
-    function stagger(root, base) {
+    function stagger(root, base, skip) {
         var list = [];
         Array.prototype.forEach.call(root.children, function (k) {
             if (/^(SCRIPT|STYLE|TEMPLATE)$/.test(k.tagName)) return;
-            if (k.hasAttribute('data-late') || (k.id && /modal/i.test(k.id))) return;
+            if (k.id && /modal/i.test(k.id)) return;
+            if (/^H[1-6]$/.test(k.tagName) || (skip && (k === skip || k.contains(skip)))) return;   // judul & teks ketik tetap diam
             var cs = getComputedStyle(k);
             if (cs.display === 'none' || cs.position === 'fixed') return;
             if (k.classList.contains('grid') && k.children.length > 1) {
@@ -207,9 +209,12 @@
 
     function init() {
         // judul yang diketik
-        var targets = Array.prototype.slice.call(document.querySelectorAll('[data-typewriter]'));
-        var h1 = document.querySelector('main h1');
-        if (h1 && targets.indexOf(h1) === -1 && !h1.hasAttribute('data-i18n') && h1.children.length === 0 && h1.textContent.trim().length <= 90) targets.push(h1);
+        var target = document.querySelector('[data-typewriter]');
+        if (!target) {
+            var h1 = document.querySelector('main h1');
+            var sub = h1 && h1.nextElementSibling;
+            if (sub && sub.tagName === 'P' && !sub.hasAttribute('data-i18n') && sub.children.length === 0 && sub.textContent.trim().length <= 120) target = sub;
+        }
 
         document.querySelectorAll('[data-clock]').forEach(clock);
         document.querySelectorAll('[data-ring]').forEach(function (c) {
@@ -220,10 +225,10 @@
 
         if (reduce) return;
 
-        targets.forEach(typewriter);                        // dulu: menandai <p> pendamping agar tidak ikut stagger
+        if (target) typewriter(target);                     // hanya satu teks yang diketik per halaman
         var main = document.querySelector('main');
-        if (main) stagger(main, 60);
-        document.querySelectorAll('[data-stagger]').forEach(function (r) { stagger(r, 120); });
+        if (main) stagger(main, 60, target);
+        document.querySelectorAll('[data-stagger]').forEach(function (r) { stagger(r, 120, target); });
 
         document.querySelectorAll('[data-count]').forEach(countUp);
         document.querySelectorAll('.b-bar').forEach(function (b) {

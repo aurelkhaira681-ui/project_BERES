@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Aduan;
 use App\Models\KategoriKerusakan;
 use App\Models\Lokasi;
+use App\Models\SiswaTerdaftar;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -13,6 +14,9 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Lokasi dari denah sekolah + daftar NISN siswa resmi
+        $this->call([LokasiDenahSeeder::class, SiswaTerdaftarSeeder::class]);
+
         // Akun Admin/Petugas
         $admin = User::create([
             'role' => 'admin',
@@ -21,16 +25,17 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
 
-        // Akun Siswa contoh
+        // Akun Siswa contoh (NISN harus ada di daftar siswa resmi)
+        $resmi = SiswaTerdaftar::orderBy('id')->first();
         $siswa = User::create([
             'role' => 'siswa',
-            'name' => 'Aurel Khaira Lubna',
-            'email' => 'aurel.khaira@siswa.sch.id',
+            'name' => $resmi->nama,
+            'email' => 'siswa.contoh@siswa.sch.id',
             'password' => Hash::make('password'),
-            'nisn' => '0071234589',
-            'kelas' => 'XII RPL B',
-            'no_presensi' => '11',
-            'konsentrasi_keahlian' => 'Rekayasa Perangkat Lunak',
+            'nisn' => $resmi->nisn,
+            'kelas' => $resmi->kelas,
+            'no_presensi' => '1',
+            'konsentrasi_keahlian' => 'Desain Pemodelan Infrastruktur Bangunan',
             'no_hp' => '0812-3456-7890',
         ]);
 
@@ -71,7 +76,7 @@ class DatabaseSeeder extends Seeder
             'kategori_kerusakan_id' => $kategori[0]->id,
             'lokasi_id' => $lokasi[2]->id,
             'tanggal_kejadian' => now()->subDays(12),
-            'deskripsi' => 'Proyektor kelas XII RPL B redup dan sulit terbaca.',
+            'deskripsi' => 'Proyektor di ruang kelas redup dan sulit terbaca.',
             'status' => 'rejected',
             'catatan_admin' => 'Sudah dicek, proyektor masih normal. Silakan cek pengaturan kecerahan terlebih dahulu.',
             'diverifikasi_at' => now()->subDays(10),

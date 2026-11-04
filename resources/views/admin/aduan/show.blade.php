@@ -13,6 +13,7 @@
             <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Kategori</p><p class="font-medium">{{ $aduan->kategori->icon }} {{ $aduan->kategori->nama }}</p></div>
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Lokasi</p><p class="font-medium">{{ $aduan->lokasi->nama_lengkap }}</p></div>
+                <div><p class="text-slate-400 text-xs uppercase mb-1">Teknisi</p><p class="font-medium">{{ $aduan->teknisi?->nama ?? 'Belum ditunjuk' }}</p></div>
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Tgl Kejadian</p><p class="font-medium">{{ $aduan->tanggal_kejadian->format('d M Y, H.i') }}</p></div>
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Status Saat Ini</p>@include('partials.admin-status-badge', ['item' => $aduan])</div>
             </div>
@@ -39,9 +40,55 @@
     </div>
 
     <div class="space-y-4">
+        {{-- Penugasan teknisi --}}
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)] p-5">
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <h2 class="font-semibold">Penugasan Teknisi</h2>
+                <span class="rounded-full bg-[#e6effb] text-[#1d4f9c] text-xs font-semibold px-2.5 py-1">{{ \App\Models\Teknisi::singkat($aduan->lokasi->jurusan) }}</span>
+            </div>
+
+            @if(in_array($aduan->status, ['pending', 'approved']))
+                @if($calonTeknisi->isEmpty())
+                    <p class="text-sm text-amber-600">Belum ada teknisi aktif. Aktifkan teknisi di Master Data.</p>
+                @else
+                    <form method="POST" action="{{ route('admin.aduan.teknisi', $aduan) }}">
+                        @csrf
+                        <div class="space-y-2">
+                            @foreach($calonTeknisi as $t)
+                                <label class="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2.5 cursor-pointer transition hover:bg-slate-50 has-[:checked]:border-[#1f6fe5] has-[:checked]:bg-[#e6effb]">
+                                    <input type="radio" name="teknisi_id" value="{{ $t->id }}" class="accent-[#1f6fe5]" required
+                                           @checked($aduan->teknisi_id ? $aduan->teknisi_id == $t->id : $loop->first)>
+                                    <span class="flex-1 min-w-0">
+                                        <span class="block text-sm font-semibold text-[#0f2d5c]">{{ $t->nama }}</span>
+                                        <span class="block text-xs text-slate-400">{{ \App\Models\Teknisi::singkat($t->jurusan) }}@if(!$aduan->teknisi_id && $loop->first) · disarankan (beban teringan)@endif</span>
+                                    </span>
+                                    <span class="text-xs text-slate-500 whitespace-nowrap">{{ $t->aktif_count }} aktif</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        @if($fallbackTeknisi)
+                            <p class="text-xs text-amber-600 mt-2">Tidak ada teknisi aktif di jurusan lokasi ini, jadi semua teknisi aktif ditampilkan.</p>
+                        @elseif(blank($aduan->lokasi->jurusan))
+                            <p class="text-xs text-slate-400 mt-2">Lokasi umum: pilih teknisi mana pun.</p>
+                        @else
+                            <p class="text-xs text-slate-400 mt-2">Hanya teknisi jurusan lokasi ini yang ditampilkan.</p>
+                        @endif
+                        <button class="mt-3 w-full rounded-xl bg-[#1f6fe5] hover:bg-[#1a5ec4] text-white py-2.5 text-sm font-bold transition">
+                            {{ $aduan->teknisi_id ? 'Ganti teknisi' : 'Simpan teknisi' }}
+                        </button>
+                    </form>
+                @endif
+            @else
+                <p class="text-sm">{{ $aduan->teknisi?->nama ?? 'Tidak ada teknisi yang ditugaskan' }}</p>
+            @endif
+        </div>
+
         @if($aduan->status === 'pending')
             <div class="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)] p-5">
                 <h2 class="font-semibold mb-3">Tindak Lanjut</h2>
+                @if(!$aduan->teknisi_id)
+                    <p class="text-xs text-amber-600 mb-2">Tugaskan teknisi terlebih dahulu sebelum menyetujui.</p>
+                @endif
                 <form method="POST" action="{{ route('admin.aduan.setujui', $aduan) }}" class="mb-3">
                     @csrf
                     <textarea name="catatan_admin" rows="2" class="w-full border rounded-lg px-3 py-2 text-sm mb-2" placeholder="Contoh: Teknisi akan mengecek lokasi besok pagi."></textarea>

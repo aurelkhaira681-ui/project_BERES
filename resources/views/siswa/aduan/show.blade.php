@@ -41,6 +41,7 @@
             <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Kategori</p><p class="font-medium">{{ $aduan->kategori->icon }} {{ $aduan->kategori->nama }}</p></div>
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Lokasi</p><p class="font-medium">{{ $aduan->lokasi->nama_lengkap }}</p></div>
+                <div><p class="text-slate-400 text-xs uppercase mb-1">Teknisi</p><p class="font-medium">{{ $aduan->teknisi?->nama ?? 'Ditentukan petugas' }}@if($aduan->teknisi) <span class="text-xs text-slate-400 font-normal">· {{ \App\Models\Teknisi::singkat($aduan->teknisi->jurusan) }}</span>@endif</p></div>
             </div>
             <p class="text-sm text-slate-600 mb-4">{{ $aduan->deskripsi }}</p>
 

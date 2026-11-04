@@ -12,7 +12,7 @@
         ['Disetujui',   $stats['disetujui'], 'from-[#dff7e8] to-[#f2fcf6] border-[#c4eed6]', 'bg-[#22b36b]', '<path d="M5 12.5l4.5 4.5L19 7.5"/>'],
         ['Ditolak',     $stats['ditolak'],   'from-[#ffe3e1] to-[#fff4f3] border-[#ffd0cc]', 'bg-[#ef4b43]', '<path d="M6 6l12 12M18 6L6 18"/>'],
     ];
-    $filterAktif = request()->hasAny(['q', 'kategori', 'lokasi', 'status', 'tanggal']);
+    $filterAktif = request()->hasAny(['q', 'kategori', 'lokasi', 'teknisi', 'status', 'tanggal']);
 @endphp
 
 {{-- Header --}}
@@ -50,7 +50,7 @@
 <div class="{{ $card }} p-4 sm:p-5">
 
     {{-- Filter --}}
-    <form method="GET" class="grid sm:grid-cols-2 lg:grid-cols-6 gap-3 mb-5">
+    <form method="GET" class="grid sm:grid-cols-2 lg:grid-cols-7 gap-3 mb-5">
         <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari tiket, siswa, lokasi..." class="{{ $sel }} lg:col-span-2">
 
         <select name="tanggal" class="{{ $sel }}">
@@ -79,7 +79,15 @@
             @endforeach
         </select>
 
-        <div class="flex gap-2 sm:col-span-2 lg:col-span-6 lg:justify-end">
+        <select name="teknisi" class="{{ $sel }}">
+            <option value="">Semua Teknisi</option>
+            <option value="belum" @selected(request('teknisi') === 'belum')>Belum ditunjuk</option>
+            @foreach($teknisiList as $t)
+                <option value="{{ $t->id }}" @selected(request('teknisi') == $t->id)>{{ $t->nama }}</option>
+            @endforeach
+        </select>
+
+        <div class="flex gap-2 sm:col-span-2 lg:col-span-7 lg:justify-end">
             @if($filterAktif)
                 <a href="{{ route('admin.aduan.index') }}" class="rounded-xl bg-[#e6effb] hover:bg-[#d8e5f8] text-[#0f2d5c] text-sm font-bold px-5 py-2.5 transition">Reset</a>
             @endif
@@ -89,10 +97,10 @@
 
     {{-- Tabel --}}
     <div class="overflow-x-auto">
-        <table class="w-full text-sm min-w-[760px]">
+        <table class="w-full text-sm min-w-[860px]">
             <thead>
                 <tr class="text-left text-[#40608f] text-xs font-bold border-b border-slate-100">
-                    <th class="py-3 pr-3 w-10">No.</th><th class="pr-3">No. Tiket</th><th class="pr-3">Siswa</th><th class="pr-3">Kategori</th><th class="pr-3">Lokasi</th><th class="pr-3">Tanggal</th><th class="pr-3">Status</th><th class="text-center">Aksi</th>
+                    <th class="py-3 pr-3 w-10">No.</th><th class="pr-3">No. Tiket</th><th class="pr-3">Siswa</th><th class="pr-3">Kategori</th><th class="pr-3">Lokasi</th><th class="pr-3">Teknisi</th><th class="pr-3">Tanggal</th><th class="pr-3">Status</th><th class="text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -104,6 +112,7 @@
                             'siswa' => $item->user->name,
                             'kategori' => $item->kategori->nama,
                             'lokasi' => $item->lokasi->nama_lengkap,
+                            'teknisi' => $item->teknisi?->nama ?? 'Belum ditunjuk',
                             'tanggal' => $item->tanggal_kejadian->locale('id')->translatedFormat('d M Y'),
                             'status' => $item->statusLabel(),
                             'badge' => match ($item->status) {
@@ -130,6 +139,7 @@
                         <td class="pr-3">{{ $item->user->name }}</td>
                         <td class="pr-3">{{ $item->kategori->nama }}</td>
                         <td class="pr-3">{{ $item->lokasi->nama_ruangan }}</td>
+                        <td class="pr-3 whitespace-nowrap {{ $item->teknisi ? '' : 'text-slate-400' }}">{{ $item->teknisi?->nama ?? 'Belum ditunjuk' }}</td>
                         <td class="pr-3 whitespace-nowrap">{{ $item->tanggal_kejadian->locale('id')->translatedFormat('d M Y') }}</td>
                         <td class="pr-3">@include('partials.admin-status-badge', ['item' => $item])</td>
                         <td class="text-center">
@@ -139,7 +149,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="8" class="py-10 text-center text-slate-400">Tidak ada aduan yang cocok dengan filter.</td></tr>
+                    <tr><td colspan="9" class="py-10 text-center text-slate-400">Tidak ada aduan yang cocok dengan filter.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -165,6 +175,7 @@
                 <dt class="text-[#5d7aa8]">Nama Siswa</dt><dd id="md-siswa" class="font-semibold text-[#0f2d5c] break-words"></dd>
                 <dt class="text-[#5d7aa8]">Kategori</dt><dd id="md-kategori" class="font-semibold text-[#0f2d5c]"></dd>
                 <dt class="text-[#5d7aa8]">Lokasi</dt><dd id="md-lokasi" class="font-semibold text-[#0f2d5c] break-words"></dd>
+                <dt class="text-[#5d7aa8]">Teknisi</dt><dd id="md-teknisi" class="font-semibold text-[#0f2d5c]"></dd>
                 <dt class="text-[#5d7aa8]">Tanggal</dt><dd id="md-tanggal" class="font-semibold text-[#0f2d5c]"></dd>
                 <dt class="text-[#5d7aa8]">Status</dt><dd><span id="md-status" class="inline-flex rounded-full px-3 py-0.5 text-xs font-semibold"></span></dd>
             </dl>
@@ -190,6 +201,7 @@
         $('md-siswa').textContent = d.siswa;
         $('md-kategori').textContent = d.kategori;
         $('md-lokasi').textContent = d.lokasi;
+        $('md-teknisi').textContent = d.teknisi;
         $('md-tanggal').textContent = d.tanggal;
         $('md-deskripsi').textContent = d.deskripsi;
 

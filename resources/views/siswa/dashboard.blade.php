@@ -36,7 +36,7 @@
 {{-- Header --}}
 <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
     <div>
-        <h1 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#0f2d5c]">Selamat {{ $sapaan }}, {{ $namaDepan }} 👋</h1>
+        <h1 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#0f2d5c]">Selamat {{ $sapaan }}, {{ $namaDepan }}</h1>
         <p class="text-[#5d7aa8] mt-1">Berikut ringkasan aduan sarana yang sudah kamu ajukan</p>
     </div>
     <div class="inline-flex items-center gap-2 rounded-xl bg-[#e9f0fb] px-4 py-2.5 text-sm font-semibold text-[#0f2d5c]">
@@ -47,17 +47,17 @@
     </div>
 </div>
 
-{{-- Statistik --}}
-<div class="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-5">
+{{-- Statistik (ringkas, satu deret) --}}
+<div class="grid grid-cols-4 gap-2 sm:gap-3 mb-5">
     @foreach($statCards as [$label, $angka, $warna, $ikon])
-        <div class="{{ $card }} b-lift p-4 sm:p-5">
-            <div class="flex items-center gap-3">
-                <span class="shrink-0 w-11 h-11 rounded-full flex items-center justify-center {{ $warna }}">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">{!! $ikon !!}</svg>
+        <div class="{{ $card }} b-lift px-2.5 py-2.5 sm:px-4 sm:py-3">
+            <div class="flex items-center gap-2">
+                <span class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center {{ $warna }}">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor">{!! $ikon !!}</svg>
                 </span>
-                <p class="text-xs sm:text-[13px] font-semibold text-[#0f2d5c] leading-tight">{{ $label }}</p>
+                <p class="min-w-0 text-[10px] sm:text-xs font-semibold text-[#0f2d5c] leading-tight">{{ $label }}</p>
             </div>
-            <p class="mt-3 text-right text-3xl font-bold text-[#1d4f9c] leading-none"><span data-count="{{ $angka }}">{{ $angka }}</span> <span class="text-xs font-normal text-slate-400">aduan</span></p>
+            <p class="mt-1.5 text-right text-xl sm:text-2xl font-bold text-[#1d4f9c] leading-none"><span data-count="{{ $angka }}">{{ $angka }}</span><span class="hidden sm:inline text-[11px] font-normal text-slate-400"> aduan</span></p>
         </div>
     @endforeach
 </div>
