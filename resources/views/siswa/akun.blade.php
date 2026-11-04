@@ -45,10 +45,7 @@
         <h1 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#0f2d5c]">Akun Saya</h1>
         <p class="text-[#5d7aa8] mt-1">Kelola biodata & preferensi akun kamu</p>
     </div>
-    <a href="#" class="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)] px-4 py-2.5 text-sm font-semibold text-[#0f2d5c] hover:bg-slate-50">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>
-        Ubah Password
-    </a>
+
 </div>
 
 <div class="grid lg:grid-cols-3 gap-5 sm:gap-6 items-start">
@@ -61,7 +58,7 @@
         </div>
 
         <div class="flex items-center gap-4 mt-4 mb-5">
-            <div class="w-[72px] h-[72px] shrink-0 rounded-full bg-[#b9d0ee] text-[#0f2d5c] flex items-center justify-center text-3xl font-semibold">{{ $initials }}</div>
+            @include('partials.foto-avatar', ['user' => $user, 'initials' => $initials])
             <div class="min-w-0">
                 <p class="font-bold text-lg text-[#0f2d5c] truncate">{{ $user->name }}</p>
                 <p class="text-sm text-[#5d7aa8]">Siswa · Kelas {{ $user->kelas }}</p>
@@ -125,23 +122,7 @@
 
     {{-- Kolom kanan --}}
     <div class="space-y-5 sm:space-y-6">
-        <div class="{{ $card }} p-5 sm:p-6">
-            <h2 class="font-bold text-[#0f2d5c] mb-2">Preferensi</h2>
-            <div class="divide-y divide-slate-100">
-                @foreach($preferensi as [$judul, $sub, $ikon, $warna])
-                    <a href="#" class="flex items-center gap-3 py-3.5 hover:bg-slate-50/70 -mx-2 px-2 rounded-lg transition">
-                        <svg class="w-5 h-5 shrink-0 {{ $warna }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{!! $ikon !!}</svg>
-                        <span class="flex-1 min-w-0">
-                            <span class="block text-sm font-semibold text-[#0f2d5c]">{{ $judul }}</span>
-                            <span class="block text-xs text-slate-400">{{ $sub }}</span>
-                        </span>
-                        <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-                    </a>
-                @endforeach
-            </div>
-        </div>
-
-        </div>
+        @include('partials.preferensi')
     </div>
 </div>
 

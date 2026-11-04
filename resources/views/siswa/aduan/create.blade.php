@@ -14,8 +14,8 @@
    class="mb-3 inline-flex w-10 h-10 items-center justify-center rounded-xl bg-[#0f4a9a] text-white hover:bg-[#0b3c7f] transition">
     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
 </a>
-<h1 class="text-2xl sm:text-[30px] font-extrabold tracking-tight text-[#0f2d5c]">Ajukan Aduan Baru</h1>
-<p class="text-[#5d7aa8] mt-1 mb-6">Isi detail kerusakan fasilitas selengkap mungkin agar cepat ditindaklanjuti</p>
+<h1 class="text-2xl sm:text-[30px] font-extrabold tracking-tight text-[#0f2d5c]" data-i18n>Ajukan Aduan Baru</h1>
+<p class="text-[#5d7aa8] mt-1 mb-6" data-i18n>Isi detail kerusakan fasilitas selengkap mungkin agar cepat ditindaklanjuti</p>
 
 @if($errors->any())
     <div class="mb-5 rounded-xl bg-red-50 text-red-600 border border-red-200 px-4 py-3 text-sm">
@@ -28,10 +28,10 @@
 
     {{-- Detail kerusakan --}}
     <div class="{{ $card }} p-5 sm:p-6 lg:col-span-2 space-y-5">
-        <h2 class="font-bold text-[#0f2d5c]">Detail Kerusakan</h2>
+        <h2 class="font-bold text-[#0f2d5c]" data-i18n>Detail Kerusakan</h2>
 
         <div>
-            <label class="block text-sm font-bold text-[#0f2d5c] mb-2.5">Kategori Kerusakan</label>
+            <label class="block text-sm font-bold text-[#0f2d5c] mb-2.5" data-i18n>Kategori Kerusakan</label>
             <div class="flex gap-2.5 flex-wrap">
                 @foreach($kategori as $k)
                     <label class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 bg-white text-sm font-medium text-slate-600 cursor-pointer shadow-sm transition
@@ -43,25 +43,52 @@
             </div>
         </div>
 
+        {{-- Denah klik: pilih ruangan langsung di peta sekolah --}}
+        @include('partials.denah-picker', ['lokasi' => $lokasi, 'terpilih' => old('lokasi_id'), 'selectId' => 'lokasi_id'])
+
         <div class="grid sm:grid-cols-2 gap-4">
             <div>
-                <label for="lokasi_id" class="block text-sm font-bold text-[#0f2d5c] mb-2">Lokasi / Ruangan</label>
+                <label for="lokasi_id" class="block text-sm font-bold text-[#0f2d5c] mb-2">Lokasi / Ruangan <span class="font-normal text-[#5d7aa8]">(atau pilih dari daftar)</span></label>
                 <select id="lokasi_id" name="lokasi_id" required class="{{ $field }}">
                     <option value="">Pilih lokasi</option>
-                    @foreach($lokasi as $l)
-                        <option value="{{ $l->id }}" {{ (string) old('lokasi_id') === (string) $l->id ? 'selected' : '' }}>{{ $l->nama_lengkap }}</option>
+                    @foreach($lokasiGrup as $grup => $daftar)
+                        <optgroup label="{{ $grup }}">
+                            @foreach($daftar as $l)
+                                <option value="{{ $l->id }}" {{ (string) old('lokasi_id') === (string) $l->id ? 'selected' : '' }}>{{ $l->nama_lengkap }}</option>
+                            @endforeach
+                        </optgroup>
                     @endforeach
                 </select>
                 @include('partials.denah-picker', ['lokasi' => $lokasi])
             </div>
             <div>
-                <label for="tanggal_kejadian" class="block text-sm font-bold text-[#0f2d5c] mb-2">Tanggal & Waktu Kejadian</label>
+                <label for="tanggal_kejadian" class="block text-sm font-bold text-[#0f2d5c] mb-2" data-i18n>Tanggal & Waktu Kejadian</label>
                 <input id="tanggal_kejadian" type="datetime-local" name="tanggal_kejadian" required value="{{ old('tanggal_kejadian') }}" class="{{ $field }}">
             </div>
         </div>
 
+        {{-- Teknisi: otomatis sesuai jurusan lokasi, tidak bisa dipilih siswa --}}
         <div>
-            <label for="deskripsi" class="block text-sm font-bold text-[#0f2d5c] mb-2">Deskripsi Kerusakan</label>
+            <div class="flex items-center justify-between mb-2">
+                <label class="block text-sm font-bold text-[#0f2d5c]" data-i18n>Teknisi Penanggung Jawab</label>
+                <span class="inline-flex items-center gap-1 text-xs text-[#5d7aa8]">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>
+                    Otomatis
+                </span>
+            </div>
+            <div class="flex items-center gap-3 rounded-xl border border-dashed border-[#9db8e0] bg-slate-50 px-4 py-3">
+                <div id="teknisi-avatar" class="w-10 h-10 shrink-0 rounded-full bg-[#e6effb] text-[#1d4f9c] flex items-center justify-center text-sm font-bold">?</div>
+                <div class="min-w-0 flex-1">
+                    <p id="teknisi-nama" class="font-bold text-sm text-[#0f2d5c]">Pilih lokasi terlebih dahulu</p>
+                    <p id="teknisi-ket" class="text-xs text-[#5d7aa8] mt-0.5">Teknisi ditentukan otomatis sesuai jurusan lokasi.</p>
+                </div>
+                <span id="teknisi-beban" class="hidden shrink-0 rounded-full bg-[#d9f4e5] text-[#15935a] text-xs font-semibold px-2.5 py-1"></span>
+            </div>
+            <p class="text-xs text-[#5d7aa8] mt-2">Teknisi dipilih sistem berdasarkan jurusan lokasi dan beban kerja, jadi tidak bisa diubah.</p>
+        </div>
+
+        <div>
+            <label for="deskripsi" class="block text-sm font-bold text-[#0f2d5c] mb-2" data-i18n>Deskripsi Kerusakan</label>
             <textarea id="deskripsi" name="deskripsi" rows="7" required placeholder="Jelaskan kondisi kerusakan yang ditemukan..." class="{{ $field }} resize-y">{{ old('deskripsi') }}</textarea>
         </div>
     </div>
@@ -69,7 +96,7 @@
     {{-- Kolom kanan --}}
     <div class="space-y-5 sm:space-y-6">
         <div class="{{ $card }} p-5 sm:p-6">
-            <h2 class="font-bold text-[#0f2d5c] mb-4">Foto Bukti</h2>
+            <h2 class="font-bold text-[#0f2d5c] mb-4" data-i18n>Foto Bukti</h2>
 
             <div class="relative rounded-xl border-2 border-dashed border-[#c9d8ee] bg-[#fafcff] hover:border-[#4a86e8] transition">
                 <div class="flex flex-col items-center justify-center text-center px-4 py-8 text-sm text-[#5d7aa8]">
@@ -82,7 +109,7 @@
         </div>
 
         <div class="{{ $card }} p-5 sm:p-6">
-            <h2 class="font-bold text-[#0f2d5c] mb-4">Data Pelapor</h2>
+            <h2 class="font-bold text-[#0f2d5c] mb-4" data-i18n>Data Pelapor</h2>
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 shrink-0 rounded-full bg-[#b9d0ee] text-[#0f2d5c] flex items-center justify-center font-bold">{{ $initials }}</div>
                 <div class="min-w-0">
@@ -90,7 +117,7 @@
                     <p class="text-xs text-[#5d7aa8] mt-0.5">{{ $u->kelas }} · No. Absen {{ $u->no_presensi }}</p>
                 </div>
             </div>
-            <p class="text-xs text-[#5d7aa8] mt-3">Terisi otomatis dari akun kamu.</p>
+            <p class="text-xs text-[#5d7aa8] mt-3" data-i18n>Terisi otomatis dari akun kamu.</p>
         </div>
 
         <button class="w-full flex items-center justify-center gap-2 rounded-xl bg-[#0f3a7a] hover:bg-[#0b2f66] active:scale-[.99] transition text-white font-bold py-3.5 shadow-lg shadow-blue-900/20">
@@ -101,6 +128,41 @@
 </form>
 
 <script>
+    // Pratinjau teknisi sesuai lokasi (penugasan sebenarnya ditentukan server saat aduan dikirim)
+    (function () {
+        var data = @json((object) $penugasan);
+        var sel = document.getElementById('lokasi_id');
+        var $ = function (id) { return document.getElementById(id); };
+
+        function tampil() {
+            var p = data[sel.value];
+            var avatar = '?', nama = 'Pilih lokasi terlebih dahulu', ket = 'Teknisi ditentukan otomatis sesuai jurusan lokasi.', beban = '';
+
+            if (sel.value && p) {
+                if (!p.jurusan) {
+                    avatar = '–'; nama = 'Ditentukan petugas';
+                    ket = 'Lokasi ini tidak terkait satu jurusan. Petugas akan menunjuk teknisi saat verifikasi.';
+                } else if (!p.teknisi) {
+                    avatar = '–'; nama = 'Menunggu petugas';
+                    ket = 'Belum ada teknisi aktif untuk jurusan ' + p.jurusan + '.';
+                } else {
+                    avatar = p.teknisi.inisial; nama = p.teknisi.nama; ket = 'Jurusan ' + p.teknisi.jurusan;
+                    beban = p.teknisi.aktif + ' aduan aktif';
+                }
+            }
+
+            $('teknisi-avatar').textContent = avatar;
+            $('teknisi-nama').textContent = nama;
+            $('teknisi-ket').textContent = ket;
+            var b = $('teknisi-beban');
+            b.textContent = beban;
+            b.classList.toggle('hidden', !beban);
+        }
+
+        sel.addEventListener('change', tampil);
+        tampil();
+    })();
+
     (function () {
         var input = document.getElementById('foto');
         var box = document.getElementById('foto-preview');

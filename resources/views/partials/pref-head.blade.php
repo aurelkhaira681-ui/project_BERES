@@ -21,7 +21,12 @@
         'Terima notifikasi aduan': 'Receive complaint notifications',
         'Menampilkan lencana jumlah aduan pada menu dan lonceng.': 'Shows complaint count badges on the menu and bell.',
         'Mode Terang': 'Light Mode', 'Mode Gelap': 'Dark Mode',
-        'Admin / Petugas': 'Admin / Officer'
+        'Admin / Petugas': 'Admin / Officer',
+        'Aduan Aktif': 'Active Complaints', 'Menunggu Verifikasi': 'Awaiting Verification',
+        'menunggu': 'pending', 'diproses': 'in progress', 'aduan perlu ditinjau': 'complaints need review',
+        'Ajukan Sekarang': 'Submit Now', 'Tinjau Sekarang': 'Review Now',
+        'Simpan Foto': 'Save Photo', 'Hapus foto profil?': 'Remove your profile photo?',
+        'Format foto harus JPG, PNG, atau WebP.': 'Photo must be a JPG, PNG, or WebP image.'
     };
 
     function get() {
@@ -29,6 +34,11 @@
         catch (e) { return Object.assign({}, DEF); }
     }
     function save(p) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) {} }
+
+    // Salin pilihan bahasa ke cookie supaya server (validasi & notifikasi) memakai bahasa yang sama
+    function syncLocale() {
+        try { document.cookie = 'beres_lang=' + (get().bahasa === 'en' ? 'en' : 'id') + '; path=/; max-age=31536000; SameSite=Lax'; } catch (e) {}
+    }
 
     function t(idText) { return get().bahasa === 'en' ? (EN[idText] || idText) : idText; }
 
@@ -52,6 +62,7 @@
         document.documentElement.classList.toggle('dark', p.tema === 'dark');
         document.querySelectorAll('.js-notif-badge').forEach(function (el) { el.style.display = p.notif ? '' : 'none'; });
         translate();
+        syncLocale();
     }
 
     window.BERES_PREF = {
