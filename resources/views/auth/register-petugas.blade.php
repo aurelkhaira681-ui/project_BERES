@@ -59,8 +59,9 @@
 
         <div class="relative w-full max-w-xl">
 
-            <a href="{{ route('login') }}" class="md:hidden inline-flex items-center gap-2 mb-6 -ml-1 px-3 py-2 rounded-lg text-[#16305c] font-semibold hover:bg-slate-100">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+            {{-- Tombol kembali ke halaman login --}}
+            <a href="{{ route('login') }}" class="inline-flex items-center gap-2 mb-6 rounded-xl bg-white border border-slate-100 shadow-sm px-4 py-2 text-sm font-bold text-[#1e3f7f] hover:bg-[#f0f5ff] transition">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
                 Kembali
             </a>
 
