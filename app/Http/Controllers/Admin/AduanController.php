@@ -105,20 +105,27 @@ class AduanController extends Controller
         return view('admin.aduan.show', compact('aduan', 'totalAduanPelapor', 'calonTeknisi', 'fallbackTeknisi'));
     }
 
-    // Teknisi yang boleh ditugaskan: sejurusan dengan lokasi (lokasi umum = semua teknisi aktif).
-    // Jika tidak ada teknisi aktif di jurusan itu (mis. semua cuti), tampilkan semua teknisi aktif.
+    // Teknisi yang boleh ditugaskan:
+    // 1) teknisi yang sejurusan/sebidang dengan lokasi aduan;
+    // 2) lokasi sisa (tanpa jurusan) atau jurusan tanpa teknisi aktif -> teknisi umum (Pak Jiwanto).
+    // Jika tidak ada teknisi aktif yang cocok sama sekali, tampilkan semua teknisi aktif.
     private function calonTeknisi(Aduan $aduan): array
     {
         $semua = Teknisi::where('aktif', true)->beban()->orderBy('aktif_count')->orderBy('nama')->get();
+
         $jurusan = $aduan->lokasi->jurusan;
 
-        if (blank($jurusan)) {
-            return [$semua, false];
+        if (filled($jurusan)) {
+            $sejurusan = $semua->where('jurusan', $jurusan)->values();
+
+            if ($sejurusan->isNotEmpty()) {
+                return [$sejurusan, false];
+            }
         }
 
-        $sejurusan = $semua->where('jurusan', $jurusan)->values();
+        $umum = $semua->where('jurusan', Teknisi::BIDANG_SANITASI)->values();
 
-        return $sejurusan->isNotEmpty() ? [$sejurusan, false] : [$semua, true];
+        return $umum->isNotEmpty() ? [$umum, false] : [$semua, true];
     }
 
     public function tugaskan(Request $request, Aduan $aduan)
@@ -126,12 +133,12 @@ class AduanController extends Controller
         $request->validate(['teknisi_id' => ['required', 'integer']]);
         abort_unless(in_array($aduan->status, ['pending', 'approved']), 403);
 
-        $aduan->loadMissing('lokasi');
+        $aduan->loadMissing('lokasi', 'kategori');
         [$calon] = $this->calonTeknisi($aduan);
         $teknisi = $calon->firstWhere('id', (int) $request->input('teknisi_id'));
 
         if (! $teknisi) {
-            return back()->with('error', __('Teknisi tidak sesuai dengan jurusan lokasi aduan.'));
+            return back()->with('error', __('Teknisi tidak sesuai dengan kategori atau jurusan lokasi aduan.'));
         }
 
         $aduan->update(['teknisi_id' => $teknisi->id]);

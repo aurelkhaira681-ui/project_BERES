@@ -16,10 +16,24 @@ class Teknisi extends Model
     public const JURUSAN = [
         'Otomotif',
         'Otomasi',
+        'Elektro',
         'Mesin',
         'Rekayasa Perangkat Lunak',
         'Desain Pemodelan Infrastruktur Bangunan',
     ];
+
+    // Teknisi bidang: Pak Purdiyanto (ruangan Listrik) dan Pak Jiwanto (ruangan sisa yang tidak
+    // terjangkau teknisi jurusan mana pun)
+    public const BIDANG_LISTRIK = 'Listrik';
+    public const BIDANG_SANITASI = 'Sanitasi & Umum';
+
+    public const BIDANG = [self::BIDANG_LISTRIK, self::BIDANG_SANITASI];
+
+    // Semua nilai yang boleh dipilih untuk teknisi (jurusan + bidang)
+    public const SEMUA = [...self::JURUSAN, ...self::BIDANG];
+
+    // Nilai yang boleh dipilih untuk lokasi (jurusan + ruangan Listrik). Kosong = ruangan sisa -> teknisi umum.
+    public const LOKASI = [...self::JURUSAN, self::BIDANG_LISTRIK];
 
     protected $fillable = ['nama', 'jurusan', 'aktif'];
 
@@ -36,7 +50,7 @@ class Teknisi extends Model
         return $query->withCount(['aduan as aktif_count' => fn ($a) => $a->whereIn('status', ['pending', 'approved'])]);
     }
 
-    /** Teknisi aktif di jurusan tersebut dengan beban paling ringan (null jika lokasi umum / tidak ada). */
+    /** Teknisi aktif di jurusan/bidang tersebut dengan beban paling ringan (null jika tidak ada). */
     public static function untukJurusan(?string $jurusan): ?self
     {
         if (blank($jurusan)) {
@@ -49,6 +63,17 @@ class Teknisi extends Model
             ->orderBy('aktif_count')
             ->orderBy('id')
             ->first();
+    }
+
+    /**
+     * Teknisi untuk sebuah aduan, ditentukan oleh LOKASI (jurusan ruangan di denah):
+     * 1) ruangan milik jurusan/bidang tertentu -> teknisi di jurusan/bidang itu (beban paling ringan);
+     * 2) ruangan sisa yang tidak terjangkau teknisi lain -> teknisi umum (Pak Jiwanto).
+     * Kategori kerusakan tidak mempengaruhi penugasan.
+     */
+    public static function untukAduan(?string $jurusanLokasi): ?self
+    {
+        return static::untukJurusan($jurusanLokasi) ?? static::untukJurusan(self::BIDANG_SANITASI);
     }
 
     public static function singkat(?string $jurusan): string

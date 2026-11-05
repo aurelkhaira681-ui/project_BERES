@@ -33,7 +33,6 @@
 {{-- Header --}}
 <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
     <div class="flex items-center gap-3">
-        <span class="text-4xl leading-none inline-block b-wave">👋</span>
         <div>
             <h1 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#0f2d5c]">Selamat datang, {{ $namaDepan }}!</h1>
             <p class="text-[#5d7aa8] mt-0.5 text-sm sm:text-base">Kelola pengaduan sarana sekolah dengan mudah dan cepat.</p>
@@ -49,9 +48,7 @@
         <div class="flex items-center gap-2 rounded-xl bg-white/80 border border-slate-100 px-4 h-11 text-sm font-semibold text-[#0f2d5c]">
             <svg class="w-4 h-4 text-[#1f6fe5]" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zm-2 8h14v9H5z"/></svg>
             {{ $tanggal }}
-            <span class="text-[#8aa6d3]">·</span>
-            <span data-clock class="tabular-nums">--:--:-- WIB</span>
-        </div>
+                    </div>
     </div>
 </div>
 

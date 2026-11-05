@@ -49,26 +49,34 @@ class AduanController extends Controller
                 fn ($a, $b) => strnatcasecmp($a->nama_ruangan, $b->nama_ruangan),
             ])
             ->values();
-        $lokasiGrup = $lokasi->groupBy(fn ($l) => $l->kelompok ?: 'Lainnya');
 
         // Pratinjau teknisi per lokasi (hanya tampilan; penugasan sebenarnya dihitung ulang di store())
+        $format = fn (?Teknisi $t) => $t ? [
+            'nama' => $t->nama,
+            'jurusan' => Teknisi::singkat($t->jurusan),
+            'inisial' => $t->inisial(),
+            'aktif' => (int) $t->aktif_count,
+            'bidang' => in_array($t->jurusan, Teknisi::BIDANG, true),
+        ] : null;
+
+        // Ruangan sisa / jurusan tanpa teknisi aktif -> teknisi umum (Pak Jiwanto)
+        $umum = Teknisi::untukJurusan(Teknisi::BIDANG_SANITASI);
+
         $perJurusan = [];
         $penugasan = [];
         foreach ($lokasi as $l) {
             if (filled($l->jurusan) && ! array_key_exists($l->jurusan, $perJurusan)) {
                 $perJurusan[$l->jurusan] = Teknisi::untukJurusan($l->jurusan);
             }
-            $t = filled($l->jurusan) ? $perJurusan[$l->jurusan] : null;
+            $t = (filled($l->jurusan) ? $perJurusan[$l->jurusan] : null) ?? $umum;
             $penugasan[$l->id] = [
                 'jurusan' => $l->jurusan ? Teknisi::singkat($l->jurusan) : null,
-                'teknisi' => $t ? [
-                    'nama' => $t->nama,
-                    'jurusan' => Teknisi::singkat($t->jurusan),
-                    'inisial' => $t->inisial(),
-                    'aktif' => (int) $t->aktif_count,
-                ] : null,
+                'teknisi' => $format($t),
             ];
         }
+
+        // Daftar lokasi dikelompokkan per lantai untuk <optgroup> di dropdown.
+        $lokasiGrup = $lokasi->groupBy(fn ($l) => $l->lantai ?: 'Lainnya');
 
         return view('siswa.aduan.create', compact('kategori', 'lokasi', 'lokasiGrup', 'penugasan'));
     }
@@ -90,8 +98,11 @@ class AduanController extends Controller
             }
         }
 
-        // Teknisi ditentukan server berdasarkan jurusan lokasi — siswa tidak bisa memilih / mengubahnya
-        $teknisi = Teknisi::untukJurusan(Lokasi::find($data['lokasi_id'])?->jurusan);
+        // Teknisi ditentukan server berdasarkan lokasi (jurusan ruangan di denah); ruangan sisa -> Pak Jiwanto.
+        // Siswa tidak bisa memilih / mengubahnya.
+        $teknisi = Teknisi::untukAduan(
+            Lokasi::find($data['lokasi_id'])?->jurusan,
+        );
 
         $aduan = $request->user()->aduan()->create([
             ...$data,

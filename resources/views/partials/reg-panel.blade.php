@@ -1,109 +1,59 @@
-{{-- Preferensi tampilan (tema & bahasa). Disimpan di localStorage browser. --}}
-<script>
-(function () {
-    var KEY = 'beres_pref';
-    var DEF = { tema: 'light', bahasa: 'id', notif: true };
+{{-- Panel kiri halaman Daftar: sama dengan panel kiri halaman Masuk --}}
+<div class="hidden lg:flex relative flex-col justify-between gap-8 overflow-hidden bg-gradient-to-b from-[#1c407a] via-[#0d2f66] to-[#0c2e65] text-white px-12 xl:px-16 py-10">
+    <div class="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-white/5"></div>
+    <div class="absolute top-6 right-24 w-10 h-10 rounded-full bg-[#2a5091]/70"></div>
+    <div class="absolute -bottom-6 -left-6 w-14 h-14 rounded-full bg-[#2a5091]/70"></div>
+    <div class="absolute -bottom-40 -right-24 w-[480px] h-[300px] rounded-full bg-[#2a5bb0]/40 rotate-[-12deg]"></div>
+    @include('partials.bubbles')
 
-    // Kamus Indonesia -> English (kunci = teks asli Indonesia pada elemen [data-i18n])
-    var EN = {
-        'Menu Saya': 'My Menu', 'Menu Utama': 'Main Menu',
-        'Beranda': 'Home', 'Ajukan Aduan': 'Submit Complaint', 'Riwayat Aduan': 'Complaint History',
-        'Akun Saya': 'My Account', 'Dashboard': 'Dashboard', 'Data Aduan': 'Complaint Data',
-        'Master Data': 'Master Data', 'Keluar': 'Log Out',
-        'Kelola biodata & preferensi akun kamu': 'Manage your profile & account preferences',
-        'Ubah Password': 'Change Password', 'Informasi Profil': 'Profile Information', 'Edit': 'Edit',
-        'Nama Lengkap': 'Full Name', 'Kelas': 'Class', 'No. Presensi': 'Attendance No.',
-        'Konsentrasi Keahlian': 'Major', 'Email': 'Email', 'No. HP': 'Phone No.', 'Peran': 'Role',
-        'Preferensi': 'Preferences', 'Notifikasi': 'Notifications', 'Atur notifikasi aduan': 'Manage complaint notifications',
-        'Tema': 'Theme', 'Bahasa': 'Language', 'Simpan Perubahan': 'Save Changes', 'Batal': 'Cancel', 'Tutup': 'Close',
-        'Password Saat Ini': 'Current Password', 'Password Baru': 'New Password',
-        'Ulangi Password Baru': 'Repeat New Password', 'Simpan Password': 'Save Password',
-        'Terima notifikasi aduan': 'Receive complaint notifications',
-        'Menampilkan lencana jumlah aduan pada menu dan lonceng.': 'Shows complaint count badges on the menu and bell.',
-        'Mode Terang': 'Light Mode', 'Mode Gelap': 'Dark Mode',
-        'Admin / Petugas': 'Admin / Officer',
-        'Aduan Aktif': 'Active Complaints', 'Menunggu Verifikasi': 'Awaiting Verification',
-        'menunggu': 'pending', 'diproses': 'in progress', 'aduan perlu ditinjau': 'complaints need review',
-        'Ajukan Sekarang': 'Submit Now', 'Tinjau Sekarang': 'Review Now',
-        'Simpan Foto': 'Save Photo',
-        'Ajukan Aduan Baru': 'Submit a New Complaint',
-        'Isi detail kerusakan fasilitas selengkap mungkin agar cepat ditindaklanjuti': 'Describe the facility damage clearly so it can be handled quickly',
-        'Detail Kerusakan': 'Damage Details', 'Kategori Kerusakan': 'Damage Category',
-        'Lokasi / Ruangan': 'Location / Room', 'Tanggal & Waktu Kejadian': 'Incident Date & Time',
-        'Teknisi Penanggung Jawab': 'Assigned Technician', 'Otomatis': 'Automatic',
-        'Deskripsi Kerusakan': 'Damage Description', 'Foto Bukti': 'Evidence Photos',
-        'Data Pelapor': 'Reporter Information', 'Terisi otomatis dari akun kamu.': 'Automatically filled from your account.',
-        'Kirim Aduan': 'Submit Complaint',
-        'Belum tahu lokasi Anda? Lihat denah ini': 'Not sure where it is? View the map',
-        'Pilih ruangan pada denah sekolah': 'Select a room on the school map',
-        'Klik ruangan pada denah untuk mengisi pilihan lokasi secara otomatis. Gunakan tombol + / − untuk memperbesar.': 'Click a room on the map to fill in the location automatically. Use + / − to zoom.',
-        'Lokasi dipilih:': 'Selected location:',
-        'Pilih lokasi': 'Choose a location',
-        'Pilih Lokasi di Denah': 'Choose a Location on the Map', 'Hapus foto profil?': 'Remove your profile photo?',
-        'Format foto harus JPG, PNG, atau WebP.': 'Photo must be a JPG, PNG, or WebP image.'
-    };
+    <div class="relative">
+        <div class="flex items-center gap-5">
+            @include('partials.logo-brand', ['class' => 'w-24 xl:w-28'])
+            <div>
+                <h1 class="text-5xl xl:text-6xl font-extrabold tracking-tight leading-none">BERES</h1>
+                <p class="text-white/85 mt-1.5">Sistem Pengaduan Sarana Sekolah</p>
+            </div>
+        </div>
+        <p class="mt-8 text-xl xl:text-2xl leading-snug max-w-md text-white/95">
+            Laporkan kerusakan sarana sekolah, pantau statusnya sampai selesai.
+        </p>
+        <div class="mt-4 h-1 w-16 rounded-full bg-[#4a86e8]"></div>
+    </div>
 
-    function get() {
-        try { return Object.assign({}, DEF, JSON.parse(localStorage.getItem(KEY) || '{}')); }
-        catch (e) { return Object.assign({}, DEF); }
-    }
-    function save(p) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) {} }
+    <div class="relative -mx-4">
+        <img src="{{ asset('images/login-illustration.jpg') }}" alt="Siswa melaporkan kerusakan di SMK Negeri 5 Surakarta" class="login-illus w-full h-auto select-none" draggable="false">
+        <div class="login-card-float absolute right-[3%] top-[2%] w-[27%] min-w-[150px] bg-white text-[#142b4e] rounded-xl shadow-xl shadow-black/20 px-3 py-2.5 flex items-center gap-2.5">
+            <span class="shrink-0 w-8 h-8 rounded-full bg-[#2f63c8] flex items-center justify-center">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            </span>
+            <span class="leading-tight">
+                <span class="block text-[13px] font-bold">Laporan terkirim</span>
+                <span class="block text-[11px] text-[#2f63c8]">Terima kasih telah melapor!</span>
+            </span>
+        </div>
+    </div>
 
-    // Salin pilihan bahasa ke cookie supaya server (validasi & notifikasi) memakai bahasa yang sama
-    function syncLocale() {
-        try { document.cookie = 'beres_lang=' + (get().bahasa === 'en' ? 'en' : 'id') + '; path=/; max-age=31536000; SameSite=Lax'; } catch (e) {}
-    }
-
-    function t(idText) { return get().bahasa === 'en' ? (EN[idText] || idText) : idText; }
-
-    function translate() {
-        var en = get().bahasa === 'en';
-        document.querySelectorAll('[data-i18n]').forEach(function (el) {
-            if (el.dataset.idText === undefined) el.dataset.idText = el.textContent.trim();
-            el.textContent = en ? (EN[el.dataset.idText] || el.dataset.idText) : el.dataset.idText;
-        });
-        document.documentElement.lang = en ? 'en' : 'id';
-        var p = get();
-        document.querySelectorAll('[data-pref-sub]').forEach(function (el) {
-            var k = el.dataset.prefSub;
-            if (k === 'tema') el.textContent = p.tema === 'dark' ? t('Mode Gelap') : t('Mode Terang');
-            if (k === 'bahasa') el.textContent = p.bahasa === 'en' ? 'English' : 'Indonesia';
-        });
-    }
-
-    function apply() {
-        var p = get();
-        document.documentElement.classList.toggle('dark', p.tema === 'dark');
-        document.querySelectorAll('.js-notif-badge').forEach(function (el) { el.style.display = p.notif ? '' : 'none'; });
-        translate();
-        syncLocale();
-    }
-
-    window.BERES_PREF = {
-        get: get, t: t, apply: apply,
-        set: function (k, v) { var p = get(); p[k] = v; save(p); apply(); }
-    };
-
-    // terapkan tema secepat mungkin supaya tidak berkedip
-    if (get().tema === 'dark') document.documentElement.classList.add('dark');
-    document.addEventListener('DOMContentLoaded', apply);
-})();
-</script>
-<style>
-    html.dark { color-scheme: dark; }
-    html.dark body, html.dark body[class*="bg-gradient-to-"] { background: #0a1224 !important; color: #dbe6f7; }
-    html.dark [class~="bg-white"], html.dark [class~="bg-white/80"], html.dark [class~="bg-slate-50"] { background-color: #14213d !important; }
-    html.dark [class~="bg-[#e6effb]"], html.dark [class~="bg-[#eef3fb]"], html.dark [class~="bg-slate-100"], html.dark [class~="bg-slate-200"] { background-color: #1f3157 !important; }
-    html.dark [class*="bg-gradient-to-"]:not(aside):not(body) { background-image: none !important; background-color: #16264a !important; border-color: #263b66 !important; }
-    html.dark [class~="text-[#0f2d5c]"], html.dark [class~="text-slate-800"], html.dark [class~="text-slate-700"] { color: #e8f0ff !important; }
-    html.dark [class~="text-[#40608f]"], html.dark [class~="text-[#5d7aa8]"], html.dark [class~="text-slate-600"], html.dark [class~="text-slate-500"] { color: #a5b9d8 !important; }
-    html.dark [class~="text-slate-400"], html.dark [class~="text-slate-300"] { color: #8fa3c4 !important; }
-    html.dark [class~="text-[#1d4f9c]"], html.dark [class~="text-[#1f4f9c]"] { color: #86b6ff !important; }
-    html.dark [class~="border-slate-100"], html.dark [class~="border-slate-200"] { border-color: #263b66 !important; }
-    html.dark [class~="divide-slate-100"] > * + * { border-color: #263b66 !important; }
-    html.dark [class~="bg-red-50"] { background-color: #3a1a1f !important; }
-    html.dark [class~="bg-green-50"] { background-color: #12301f !important; }
-    html.dark input:not([type=checkbox]):not([type=radio]), html.dark select, html.dark textarea { background-color: #0f1a31 !important; color: #e8f0ff !important; border-color: #2a4070 !important; }
-    html.dark [class*="hover:bg-[#f6f9ff]"]:hover, html.dark [class*="hover:bg-slate-50"]:hover, html.dark [class*="hover:bg-white"]:hover { background-color: #1a2b50 !important; }
-    html.dark [class*="hover:bg-[#e6effb]"]:hover, html.dark [class*="hover:bg-[#d8e5f8]"]:hover { background-color: #2a4274 !important; }
-</style>
+    <div class="relative grid grid-cols-3">
+        <div class="pr-4">
+            <span class="mb-3 flex w-11 h-11 items-center justify-center rounded-xl bg-[#5c9cf2]">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a2 2 0 0 0 0 6v2a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-2a2 2 0 0 1 0-6V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z"/><path d="M9 9h6M9 12h6M9 15h3"/></svg>
+            </span>
+            <p class="font-bold text-[15px] leading-tight">Sistem Tiket Terpantau</p>
+            <p class="text-white/65 text-[13px] mt-1.5 leading-relaxed">Setiap aduan punya nomor tiket &amp; status real-time.</p>
+        </div>
+        <div class="px-4 border-l border-white/10">
+            <span class="mb-3 flex w-11 h-11 items-center justify-center rounded-xl bg-[#8db3f6]">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="#fff"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
+            </span>
+            <p class="font-bold text-[15px] leading-tight">Tindak Lanjut Cepat</p>
+            <p class="text-white/65 text-[13px] mt-1.5 leading-relaxed">Diverifikasi langsung oleh Admin/Petugas sekolah.</p>
+        </div>
+        <div class="pl-4 border-l border-white/10">
+            <span class="mb-3 flex w-11 h-11 items-center justify-center rounded-xl bg-[#c9daf8]">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="#2f63c8"><rect x="4" y="12" width="4" height="8" rx="1"/><rect x="10" y="7" width="4" height="13" rx="1"/><rect x="16" y="3" width="4" height="17" rx="1"/></svg>
+            </span>
+            <p class="font-bold text-[15px] leading-tight">Rekap Transparan</p>
+            <p class="text-white/65 text-[13px] mt-1.5 leading-relaxed">Riwayat &amp; laporan tersimpan rapi untuk evaluasi.</p>
+        </div>
+    </div>
+</div>

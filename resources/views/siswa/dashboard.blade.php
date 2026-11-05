@@ -42,9 +42,7 @@
     <div class="inline-flex items-center gap-2 rounded-xl bg-[#e9f0fb] px-4 py-2.5 text-sm font-semibold text-[#0f2d5c]">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
         {{ $now->translatedFormat('l, d F Y') }}
-        <span class="text-[#8aa6d3]">·</span>
-        <span data-clock class="tabular-nums">--:--:-- WIB</span>
-    </div>
+            </div>
 </div>
 
 {{-- Statistik (ringkas, satu deret) --}}

@@ -59,7 +59,6 @@
                         </optgroup>
                     @endforeach
                 </select>
-                @include('partials.denah-picker', ['lokasi' => $lokasi])
             </div>
             <div>
                 <label for="tanggal_kejadian" class="block text-sm font-bold text-[#0f2d5c] mb-2" data-i18n>Tanggal & Waktu Kejadian</label>
@@ -67,7 +66,7 @@
             </div>
         </div>
 
-        {{-- Teknisi: otomatis sesuai jurusan lokasi, tidak bisa dipilih siswa --}}
+        {{-- Teknisi: otomatis sesuai kategori & jurusan lokasi, tidak bisa dipilih siswa --}}
         <div>
             <div class="flex items-center justify-between mb-2">
                 <label class="block text-sm font-bold text-[#0f2d5c]" data-i18n>Teknisi Penanggung Jawab</label>
@@ -80,11 +79,11 @@
                 <div id="teknisi-avatar" class="w-10 h-10 shrink-0 rounded-full bg-[#e6effb] text-[#1d4f9c] flex items-center justify-center text-sm font-bold">?</div>
                 <div class="min-w-0 flex-1">
                     <p id="teknisi-nama" class="font-bold text-sm text-[#0f2d5c]">Pilih lokasi terlebih dahulu</p>
-                    <p id="teknisi-ket" class="text-xs text-[#5d7aa8] mt-0.5">Teknisi ditentukan otomatis sesuai jurusan lokasi.</p>
+                    <p id="teknisi-ket" class="text-xs text-[#5d7aa8] mt-0.5">Teknisi ditentukan otomatis sesuai jenis kerusakan dan lokasi.</p>
                 </div>
                 <span id="teknisi-beban" class="hidden shrink-0 rounded-full bg-[#d9f4e5] text-[#15935a] text-xs font-semibold px-2.5 py-1"></span>
             </div>
-            <p class="text-xs text-[#5d7aa8] mt-2">Teknisi dipilih sistem berdasarkan jurusan lokasi dan beban kerja, jadi tidak bisa diubah.</p>
+            <p class="text-xs text-[#5d7aa8] mt-2">Teknisi dipilih sistem berdasarkan kategori kerusakan, jurusan lokasi, dan beban kerja, jadi tidak bisa diubah.</p>
         </div>
 
         <div>
@@ -128,7 +127,8 @@
 </form>
 
 <script>
-    // Pratinjau teknisi sesuai lokasi (penugasan sebenarnya ditentukan server saat aduan dikirim)
+    // Pratinjau teknisi menurut lokasi/jurusan ruangan
+    // (penugasan sebenarnya ditentukan server saat aduan dikirim)
     (function () {
         var data = @json((object) $penugasan);
         var sel = document.getElementById('lokasi_id');
@@ -136,17 +136,15 @@
 
         function tampil() {
             var p = data[sel.value];
-            var avatar = '?', nama = 'Pilih lokasi terlebih dahulu', ket = 'Teknisi ditentukan otomatis sesuai jurusan lokasi.', beban = '';
+            var avatar = '?', nama = 'Pilih lokasi terlebih dahulu', ket = 'Teknisi ditentukan otomatis sesuai lokasi ruangan.', beban = '';
 
             if (sel.value && p) {
-                if (!p.jurusan) {
-                    avatar = '–'; nama = 'Ditentukan petugas';
-                    ket = 'Lokasi ini tidak terkait satu jurusan. Petugas akan menunjuk teknisi saat verifikasi.';
-                } else if (!p.teknisi) {
+                if (!p.teknisi) {
                     avatar = '–'; nama = 'Menunggu petugas';
-                    ket = 'Belum ada teknisi aktif untuk jurusan ' + p.jurusan + '.';
+                    ket = 'Belum ada teknisi aktif untuk lokasi ini. Petugas akan menunjuk teknisi saat verifikasi.';
                 } else {
-                    avatar = p.teknisi.inisial; nama = p.teknisi.nama; ket = 'Jurusan ' + p.teknisi.jurusan;
+                    avatar = p.teknisi.inisial; nama = p.teknisi.nama;
+                    ket = (p.teknisi.bidang ? 'Bidang ' : 'Jurusan ') + p.teknisi.jurusan;
                     beban = p.teknisi.aktif + ' aduan aktif';
                 }
             }

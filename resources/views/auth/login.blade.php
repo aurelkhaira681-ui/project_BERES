@@ -168,13 +168,13 @@
                 </button>
 
                 @php
-                    // Jika route pendaftaran petugas belum ada, tetap aman (kembali ke form siswa)
-                    $urlPetugas = Route::has('register.petugas') ? route('register.petugas') : route('register');
+                $urlPetugas = Route::has('register.petugas') ? route('register.petugas') : route('register');
                 @endphp
-                <p class="text-center text-slate-500 mt-6">
-                    Belum punya akun? <a id="link-daftar" href="{{ old('login_as') === 'admin' ? $urlPetugas : route('register') }}"
-                       data-siswa="{{ route('register') }}" data-admin="{{ $urlPetugas }}"
-                       class="ml-1 font-bold text-[#1e3f7f] hover:underline">Daftar</a>
+                <p class="text-center text-[#5d7aa8] relative z-10">
+                    Belum punya akun?
+                    <a id="link-daftar" href="{{ route('register') }}"
+                    data-siswa="{{ route('register') }}" data-admin="{{ $urlPetugas }}"
+                    class="font-bold text-[#0f2d5c] relative z-10">Daftar</a>
                 </p>
             </form>
 

@@ -68,7 +68,7 @@ class MasterDataController extends Controller
         $data = $request->validate([
             'nama_ruangan' => ['required', 'string', 'max:100'],
             'lantai' => ['nullable', 'string', 'max:50'],
-            'jurusan' => ['nullable', Rule::in(Teknisi::JURUSAN)],
+            'jurusan' => ['nullable', Rule::in(Teknisi::LOKASI)],
         ]);
 
         Lokasi::create($data);
@@ -81,7 +81,7 @@ class MasterDataController extends Controller
         $data = $request->validate([
             'nama_ruangan' => ['required', 'string', 'max:100'],
             'lantai' => ['nullable', 'string', 'max:50'],
-            'jurusan' => ['nullable', Rule::in(Teknisi::JURUSAN)],
+            'jurusan' => ['nullable', Rule::in(Teknisi::LOKASI)],
         ]);
 
         $lokasi->update($data);
@@ -104,7 +104,7 @@ class MasterDataController extends Controller
     {
         $data = $request->validate([
             'nama' => ['required', 'string', 'max:100'],
-            'jurusan' => ['required', Rule::in(Teknisi::JURUSAN)],
+            'jurusan' => ['required', Rule::in(Teknisi::SEMUA)],
         ]);
 
         Teknisi::create([...$data, 'aktif' => true]);
@@ -116,7 +116,7 @@ class MasterDataController extends Controller
     {
         $data = $request->validate([
             'nama' => ['required', 'string', 'max:100'],
-            'jurusan' => ['required', Rule::in(Teknisi::JURUSAN)],
+            'jurusan' => ['required', Rule::in(Teknisi::SEMUA)],
         ]);
 
         $teknisi->update([...$data, 'aktif' => $request->boolean('aktif')]);

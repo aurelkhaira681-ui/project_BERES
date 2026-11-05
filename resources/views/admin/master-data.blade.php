@@ -199,8 +199,8 @@
                 <input name="lantai" id="mf-lantai" maxlength="50" class="{{ $field }} mb-3">
                 <label class="block text-sm font-bold text-[#0f2d5c] mb-1.5">Jurusan</label>
                 <select name="jurusan" id="mf-jurusan" class="{{ $field }} mb-1">
-                    <option value="">Umum (ditentukan petugas)</option>
-                    @foreach(\App\Models\Teknisi::JURUSAN as $j)<option value="{{ $j }}">{{ $j }}</option>@endforeach
+                    <option value="">Ruangan sisa (teknisi umum)</option>
+                    @foreach(\App\Models\Teknisi::LOKASI as $j)<option value="{{ $j }}">{{ $j }}</option>@endforeach
                 </select>
                 <p class="text-xs text-[#5d7aa8] mb-3">Menentukan teknisi otomatis di formulir siswa.</p>
             @else
@@ -208,7 +208,7 @@
                 <input name="nama" id="mf-nama" required maxlength="100" placeholder="Pak ..." class="{{ $field }} mb-3">
                 <label class="block text-sm font-bold text-[#0f2d5c] mb-1.5">Jurusan</label>
                 <select name="jurusan" id="mf-jurusan" required class="{{ $field }} mb-3">
-                    @foreach(\App\Models\Teknisi::JURUSAN as $j)<option value="{{ $j }}">{{ $j }}</option>@endforeach
+                    @foreach(\App\Models\Teknisi::SEMUA as $j)<option value="{{ $j }}">{{ $j }}</option>@endforeach
                 </select>
                 <label id="mf-aktif-t-wrap" class="hidden items-center gap-2 text-sm text-[#0f2d5c] mb-3">
                     <input type="checkbox" name="aktif" id="mf-aktif-t" value="1" class="w-4 h-4 accent-[#1f6fe5]"> Teknisi aktif (tidak cuti)
