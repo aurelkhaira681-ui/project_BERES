@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Lokasi dari denah sekolah + daftar NISN siswa resmi
-        $this->call([LokasiDenahSeeder::class, SiswaTerdaftarSeeder::class]);
+        $this->call([TeknisiBidangSeeder::class, LokasiDenahSeeder::class, SiswaTerdaftarSeeder::class]);
 
         // Akun Admin/Petugas
         $admin = User::create([

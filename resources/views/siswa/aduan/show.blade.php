@@ -38,7 +38,7 @@
 
         <div class="bg-white border rounded-xl p-5">
             <h2 class="font-semibold mb-4">Detail Kerusakan</h2>
-            <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+            <div class="grid grid-cols-1 min-[420px]:grid-cols-2 gap-4 mb-4 text-sm [&>div]:min-w-0 [&_p]:break-words">
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Kategori</p><p class="font-medium">{{ $aduan->kategori->icon }} {{ $aduan->kategori->nama }}</p></div>
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Lokasi</p><p class="font-medium">{{ $aduan->lokasi->nama_lengkap }}</p></div>
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Teknisi</p><p class="font-medium">{{ $aduan->teknisi?->nama ?? 'Ditentukan petugas' }}@if($aduan->teknisi) <span class="text-xs text-slate-400 font-normal">· {{ \App\Models\Teknisi::singkat($aduan->teknisi->jurusan) }}</span>@endif</p></div>

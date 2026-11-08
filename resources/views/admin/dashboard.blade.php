@@ -222,7 +222,7 @@
 <div class="{{ $card }} p-5 mb-5">
     <div class="flex items-center justify-between gap-3 mb-4">
         <div>
-            <h2 class="font-bold text-[#0f2d5c]">Beban Teknisi</h2>
+            <h2 class="font-bold text-[#0f2d5c]">Tanggung Jawab Teknisi</h2>
             <p class="text-xs text-[#5d7aa8] mt-0.5">Aduan yang masih menunggu atau diproses per teknisi</p>
         </div>
         <a href="{{ route('admin.master-data', ['tab' => 'teknisi']) }}" class="text-sm font-semibold text-[#1f6fe5] hover:underline whitespace-nowrap">Kelola teknisi</a>

@@ -41,11 +41,11 @@
         .dnh-scroll { flex: 1 1 auto; min-height: 0; overflow: auto; background: #f4f7fc; border-top: 1px solid #e3ebf6; border-bottom: 1px solid #e3ebf6; overscroll-behavior: contain; }
         .dnh-head, .dnh-tools, .dnh-foot { flex: none; }
         .dnh-stage { position: relative; margin: 0 auto; }
-        .dnh-stage img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+        .dnh-stage img { display: block; width: 100%; max-width: none; height: auto; user-select: none; -webkit-user-drag: none; }
         .dnh-spot { position: absolute; padding: 0; margin: 0; border: 0; background: transparent; cursor: pointer; border-radius: 2px; transition: background-color .12s; }
         .dnh-spot:hover { background: rgba(15, 58, 122, .22); box-shadow: inset 0 0 0 1.5px #0f3a7a; }
         .dnh-spot.is-picked { background: rgba(245, 158, 11, .42); box-shadow: inset 0 0 0 2.5px #d97706; z-index: 1; }
-        .dnh-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 18px 14px; }
+        .dnh-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 18px max(14px, env(safe-area-inset-bottom)); }
         .dnh-status { font-size: 14px; color: #5d7aa8; min-width: 0; }
         .dnh-status strong { color: #0f2d5c; font-weight: 800; }
         .dnh-btns { display: flex; gap: 8px; margin-left: auto; }
@@ -104,7 +104,9 @@
     </div>
 
     <script>
-        (function () {
+        // Dijalankan SETELAH halaman selesai dimuat: partial ini di-include sebelum <select id="lokasi_id">,
+        // jadi kalau langsung jalan, select belum ada dan tombol denah tidak berfungsi.
+        function bukaDenahInit() {
             var modal = document.getElementById('dnh-modal');
             var select = document.getElementById('lokasi_id');
             if (!modal || !select) return;
@@ -201,6 +203,7 @@
                 tutupModal();
                 select.focus();
             });
-        })();
+        }
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', bukaDenahInit); } else { bukaDenahInit(); }
     </script>
 @endif

@@ -1,40 +1,61 @@
 <?php
 
+use App\Models\Lokasi;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-// Mengisi jurusan lokasi yang masih kosong berdasarkan namanya, supaya penugasan
-// teknisi mengikuti jurusan lokasi (bukan jatuh semua ke Pak Jiwanto).
-// Hanya mengisi yang NULL, jadi pengaturan manual di Master Data tidak tertimpa.
-// Ruangan Listrik -> Pak Purdiyanto; ruang kelas biasa, kantor, WC, dan fasilitas umum sengaja
-// dibiarkan kosong (= ruangan sisa -> Pak Jiwanto).
+// Melengkapi jurusan/bidang tiap lokasi supaya aduan tidak menumpuk di Pak Jiwanto.
+//
+// Pembagian teknisi:
+//   Pak Indri & Pak Indri Ruby -> Otomotif     Pak Heru       -> Elektro
+//   Pak Joko                   -> Otomasi      Pak Sarpono    -> Mesin
+//   Pak Riki & Pak Fajar       -> RPL (termasuk Lab/T. ASM, Axioo, KKPI, Lab. MM)
+//   Pak Tanto                  -> DPIB         Pak Purdiyanto -> Listrik
+//   Pak Jiwanto                -> hanya ruangan sisa (kelas biasa, kantor, WC, fasilitas umum)
+//
+// Hanya mengisi jurusan yang masih kosong, jadi pengaturan manual di Master Data tidak tertimpa.
+// (Migration lama "2026 11 05 000003 isi jurusan lokasi.php" bernama pakai spasi dan boleh dihapus;
+//  aturannya sudah dimasukkan ke sini lewat Lokasi::jurusanDariNama.)
 return new class extends Migration
 {
-    private const PETA = [
-        'Listrik' => ['listr', 'dle'],
-        'Elektro' => ['elektro', 'elektronika'],
-        'Otomotif' => ['tsm', 'tkr', 'otomotif'],
-        'Mesin' => ['pemesinan'],
-        'Desain Pemodelan Infrastruktur Bangunan' => ['dpib'],
-        'Rekayasa Perangkat Lunak' => ['axioo', 'rpl', 'kkpi', 'kkp'],
-        'Otomasi' => ['otomasi'],
-    ];
-
     public function up(): void
     {
-        // Ruangan Listrik yang sempat terisi 'Elektro' dikoreksi menjadi 'Listrik'.
-        DB::table('lokasi')->where('jurusan', 'Elektro')->where('nama_ruangan', 'like', '%listr%')->update(['jurusan' => 'Listrik']);
+        // WC / toilet selalu ruangan sisa, walau namanya menyebut lab tertentu.
+        DB::table('lokasi')
+            ->where(fn ($q) => $q->where('nama_ruangan', 'like', 'WC%')->orWhere('nama_ruangan', 'like', 'Toilet%'))
+            ->update(['jurusan' => null]);
 
+        // Isi jurusan yang masih kosong berdasarkan nama ruangan.
         foreach (DB::table('lokasi')->whereNull('jurusan')->get() as $lokasi) {
-            $nama = mb_strtolower($lokasi->nama_ruangan);
+            $jurusan = Lokasi::jurusanDariNama($lokasi->nama_ruangan);
 
-            foreach (self::PETA as $jurusan => $kataKunci) {
-                foreach ($kataKunci as $kata) {
-                    if (str_contains($nama, $kata)) {
-                        DB::table('lokasi')->where('id', $lokasi->id)->update(['jurusan' => $jurusan]);
-                        continue 3;
-                    }
-                }
+            if ($jurusan) {
+                DB::table('lokasi')->where('id', $lokasi->id)->update(['jurusan' => $jurusan]);
+            }
+        }
+
+        // Aduan yang masih berjalan dan terlanjur dipegang Pak Jiwanto, padahal ruangannya kini
+        // punya teknisi jurusan -> pindahkan ke teknisi jurusan itu (yang bebannya paling ringan).
+        $umum = DB::table('teknisi')->where('jurusan', 'Sanitasi & Umum')->pluck('id');
+        $status = ['pending', 'approved'];
+
+        $perluPindah = DB::table('aduan')
+            ->join('lokasi', 'lokasi.id', '=', 'aduan.lokasi_id')
+            ->whereIn('aduan.status', $status)
+            ->whereIn('aduan.teknisi_id', $umum)
+            ->whereNotNull('lokasi.jurusan')
+            ->get(['aduan.id', 'lokasi.jurusan']);
+
+        foreach ($perluPindah as $item) {
+            $tujuan = DB::table('teknisi')
+                ->where('aktif', true)
+                ->where('jurusan', $item->jurusan)
+                ->get()
+                ->sortBy(fn ($t) => DB::table('aduan')->where('teknisi_id', $t->id)->whereIn('status', $status)->count())
+                ->first();
+
+            if ($tujuan) {
+                DB::table('aduan')->where('id', $item->id)->update(['teknisi_id' => $tujuan->id]);
             }
         }
     }

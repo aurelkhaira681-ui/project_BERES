@@ -39,11 +39,66 @@
         <h1 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#0f2d5c]">Selamat {{ $sapaan }}, {{ $namaDepan }}</h1>
         <p class="text-[#5d7aa8] mt-1">Berikut ringkasan aduan sarana yang sudah kamu ajukan</p>
     </div>
-    <div class="inline-flex items-center gap-2 rounded-xl bg-[#e9f0fb] px-4 py-2.5 text-sm font-semibold text-[#0f2d5c]">
+    <div class="flex items-center gap-3">
+        {{-- Lonceng notifikasi: aduan yang sedang diproses --}}
+        <div class="relative" id="notif-wrap">
+            <button type="button" id="notif-btn" aria-label="Notifikasi aduan diproses" aria-haspopup="true" aria-expanded="false"
+                    class="relative w-11 h-11 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-[#1f4f9c] hover:bg-[#f0f5ff] transition">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a6 6 0 0 0-6 6v4l-1.7 3.4A1 1 0 0 0 5.2 17h13.6a1 1 0 0 0 .9-1.6L18 12V8a6 6 0 0 0-6-6zm-2 17a2 2 0 0 0 4 0z"/></svg>
+                @if($stats['diproses'] > 0)
+                    <span class="js-notif-badge absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-[#ef4b43] text-white text-[11px] font-bold flex items-center justify-center">{{ $stats['diproses'] }}</span>
+                @endif
+            </button>
+
+            <div id="notif-panel" class="hidden absolute right-0 top-[calc(100%+8px)] z-40 w-[min(22rem,calc(100vw-2rem))] rounded-2xl bg-white border border-slate-100 shadow-[0_12px_40px_rgba(20,50,105,0.18)] overflow-hidden">
+                <div class="flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-100">
+                    <p class="font-bold text-sm text-[#0f2d5c]">Aduan Sedang Diproses</p>
+                    <span class="text-xs font-semibold text-[#1d6fd8] bg-[#dcebff] rounded-full px-2 py-0.5">{{ $stats['diproses'] }}</span>
+                </div>
+                @forelse($sedangDiproses as $n)
+                    <a href="{{ route('siswa.aduan.show', $n) }}" class="flex items-start gap-3 px-4 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition">
+                        <span class="shrink-0 w-9 h-9 rounded-lg bg-[#dcebff] flex items-center justify-center">{{ $n->kategori->icon ?? '🧰' }}</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-sm font-semibold text-[#0f2d5c] truncate">{{ Str::limit($n->deskripsi, 40) }}</span>
+                            <span class="block text-xs text-slate-500 mt-0.5 truncate">#{{ $n->kode_tiket }} · {{ $n->lokasi->nama_ruangan ?? '-' }}</span>
+                            <span class="block text-xs text-[#1d6fd8] mt-0.5">
+                                {{ $n->teknisi ? $n->teknisi->nama . ' sedang menangani' : 'Sedang ditangani petugas' }} · {{ $n->updated_at->locale('id')->diffForHumans(short: true) }}
+                            </span>
+                        </span>
+                    </a>
+                @empty
+                    <div class="px-4 py-8 text-center">
+                        <p class="text-sm font-semibold text-[#0f2d5c]">Belum ada aduan yang diproses</p>
+                        <p class="text-xs text-slate-400 mt-1">Kamu akan diberi tahu di sini saat aduanmu mulai ditangani.</p>
+                    </div>
+                @endforelse
+                @if($stats['diproses'] > 0)
+                    <a href="{{ route('siswa.riwayat', ['status' => 'approved']) }}" class="block text-center text-sm font-semibold text-[#1d4f9c] bg-[#f4f8ff] hover:bg-[#e9f0fb] py-2.5 transition">Lihat semua yang diproses →</a>
+                @endif
+            </div>
+        </div>
+        <div class="inline-flex items-center gap-2 rounded-xl bg-[#e9f0fb] px-4 py-2.5 text-sm font-semibold text-[#0f2d5c]">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
         {{ $now->translatedFormat('l, d F Y') }}
             </div>
+    </div>
 </div>
+
+{{-- Pemberitahuan: aduan sedang diproses --}}
+@if($stats['diproses'] > 0)
+    <a href="{{ route('siswa.riwayat', ['status' => 'approved']) }}"
+       class="js-notif-badge mb-5 flex items-center gap-3 rounded-2xl border border-[#cfe0ff] bg-gradient-to-r from-[#e6f0ff] to-[#f4f8ff] px-4 py-3 hover:shadow-md transition">
+        <span class="relative flex h-3 w-3 shrink-0">
+            <span class="absolute inline-flex h-full w-full rounded-full bg-[#2f7cf6] opacity-70 animate-ping"></span>
+            <span class="relative inline-flex h-3 w-3 rounded-full bg-[#2f7cf6]"></span>
+        </span>
+        <span class="min-w-0 flex-1 text-sm text-[#0f2d5c]">
+            <b>{{ $stats['diproses'] }} aduan</b> kamu sedang diproses
+            @if($sedangDiproses->first()?->teknisi) oleh {{ $sedangDiproses->first()->teknisi->nama }}@if($stats['diproses'] > 1) dan teknisi lainnya @endif @endif.
+        </span>
+        <svg class="w-4 h-4 shrink-0 text-[#1f6fe5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </a>
+@endif
 
 {{-- Statistik (ringkas, satu deret) --}}
 <div class="grid grid-cols-4 gap-2 sm:gap-3 mb-5">
@@ -178,4 +233,19 @@
         </div>
     </div>
 </div>
+<script>
+    (function () {
+        var btn = document.getElementById('notif-btn');
+        var panel = document.getElementById('notif-panel');
+        if (!btn || !panel) return;
+        function tutup() { panel.classList.add('hidden'); btn.setAttribute('aria-expanded', 'false'); }
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var buka = panel.classList.toggle('hidden') === false;
+            btn.setAttribute('aria-expanded', buka ? 'true' : 'false');
+        });
+        document.addEventListener('click', function (e) { if (!panel.contains(e.target)) tutup(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') tutup(); });
+    })();
+</script>
 @endsection

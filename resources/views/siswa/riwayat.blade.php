@@ -41,7 +41,7 @@
 
     {{-- Tabel --}}
     <div class="overflow-x-auto">
-        <table class="w-full text-sm min-w-[680px]">
+        <table class="tbl-stack w-full text-sm min-w-[680px]">
             <thead>
                 <tr class="bg-[#f1f5fc] text-left text-[#0f2d5c]">
                     <th class="font-bold px-5 sm:px-6 py-3.5">No. Tiket</th>

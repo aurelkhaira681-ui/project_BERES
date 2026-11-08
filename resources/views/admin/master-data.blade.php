@@ -53,7 +53,7 @@
 @endif
 
 @if($tab === 'kategori')
-    <div class="overflow-x-auto"><table id="tabel-data" class="w-full text-sm min-w-[560px]">
+    <div class="overflow-x-auto"><table id="tabel-data" class="tbl-stack w-full text-sm min-w-[560px]">
         <thead><tr class="text-left text-[#40608f] text-xs font-bold border-b border-slate-100">
             <th class="py-3 pr-3 w-10">No.</th><th class="pr-3">Nama Kategori</th><th class="pr-3">Ikon</th><th class="pr-3">Jumlah Aduan</th><th class="pr-3">Status</th><th class="text-center">Aksi</th>
         </tr></thead>
@@ -82,7 +82,7 @@
     </table></div>
 
 @elseif($tab === 'lokasi')
-    <div class="overflow-x-auto"><table id="tabel-data" class="w-full text-sm min-w-[620px]">
+    <div class="overflow-x-auto"><table id="tabel-data" class="tbl-stack w-full text-sm min-w-[620px]">
         <thead><tr class="text-left text-[#40608f] text-xs font-bold border-b border-slate-100">
             <th class="py-3 pr-3 w-10">No.</th><th class="pr-3">Nama Ruangan</th><th class="pr-3">Lantai</th><th class="pr-3">Jurusan</th><th class="pr-3">Jumlah Aduan</th><th class="text-center">Aksi</th>
         </tr></thead>
@@ -117,7 +117,7 @@
     </table></div>
 
 @elseif($tab === 'teknisi')
-    <div class="overflow-x-auto"><table id="tabel-data" class="w-full text-sm min-w-[620px]">
+    <div class="overflow-x-auto"><table id="tabel-data" class="tbl-stack w-full text-sm min-w-[620px]">
         <thead><tr class="text-left text-[#40608f] text-xs font-bold border-b border-slate-100">
             <th class="py-3 pr-3 w-10">No.</th><th class="pr-3">Nama Teknisi</th><th class="pr-3">Jurusan</th><th class="pr-3">Aduan Aktif</th><th class="pr-3">Status</th><th class="text-center">Aksi</th>
         </tr></thead>
@@ -147,7 +147,7 @@
     <p class="mt-4 text-xs text-[#5d7aa8]">Teknisi berstatus Cuti tidak dipilih otomatis. Jurusan lokasi diatur di tab Lokasi / Ruangan.</p>
 
 @else
-    <div class="overflow-x-auto"><table id="tabel-data" class="w-full text-sm min-w-[560px]">
+    <div class="overflow-x-auto"><table id="tabel-data" class="tbl-stack w-full text-sm min-w-[560px]">
         <thead><tr class="text-left text-[#40608f] text-xs font-bold border-b border-slate-100">
             <th class="py-3 pr-3 w-10">No.</th><th class="pr-3">Nama</th><th class="pr-3">NISN</th><th class="pr-3">Kelas</th><th>Email</th>
         </tr></thead>

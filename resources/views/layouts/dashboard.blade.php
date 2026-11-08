@@ -9,7 +9,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     @include('partials.pref-head')
-    <style>body { font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; }</style>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; }
+        img, svg, video { max-width: 100%; }
+
+        /* Tabel -> kartu di layar HP (tambahkan class "tbl-stack" pada <table>) */
+        @media (max-width: 767px) {
+            table.tbl-stack { min-width: 0 !important; width: 100% !important; }
+            table.tbl-stack thead { display: none; }
+            table.tbl-stack, table.tbl-stack tbody, table.tbl-stack tr, table.tbl-stack td { display: block; width: 100%; }
+            table.tbl-stack tr { border: 1px solid #e3ebf6 !important; border-radius: 14px; margin: 0 0 10px; padding: 8px 14px; background: #fff; }
+            table.tbl-stack td { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 7px 0 !important; text-align: right !important; border: 0 !important; white-space: normal !important; }
+            table.tbl-stack td[data-label]::before { content: attr(data-label); flex: none; font-size: 12px; font-weight: 700; color: #5d7aa8; text-align: left; }
+            table.tbl-stack td[data-label=""]::before, table.tbl-stack td:not([data-label])::before { content: none; }
+            table.tbl-stack td[data-label="Aksi"] { justify-content: flex-end; border-top: 1px dashed #e3ebf6 !important; margin-top: 4px; padding-top: 10px !important; }
+            table.tbl-stack td[colspan] { display: block; text-align: center !important; }
+            table.tbl-stack td > * { max-width: 100%; }
+            .overflow-x-auto:has(> table.tbl-stack) { overflow-x: visible; }
+        }
+    </style>
 </head>
 <body class="{{ auth()->user()->isAdmin() ? 'bg-gradient-to-br from-[#eaf2ff] via-[#f3f7fd] to-[#eaf1fc]' : 'bg-[#f4f7fc]' }} text-slate-800 min-h-screen md:flex">
 
@@ -37,6 +55,7 @@
         ];
         $caption = 'Siswa · ' . $u->kelas;
         $notifSiswa = $u->aduan()->where('status', '!=', 'pending')->where('updated_at', '>=', now()->subDays(7))->count();
+        $notifProses = $u->aduan()->where('status', 'approved')->count();
     } else {
         $menuTitle = 'Menu Utama';
         $nav = [
@@ -56,6 +75,14 @@
         </button>
         @include('partials.logo-brand', ['class' => 'w-9'])
         <span class="font-extrabold text-lg tracking-tight">BERES</span>
+        @if($u->isSiswa())
+            <a href="{{ route('siswa.riwayat', ['status' => 'approved']) }}" aria-label="Aduan sedang diproses" class="relative ml-auto p-2 -mr-2 rounded-lg hover:bg-white/10">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a6 6 0 0 0-6 6v4l-1.7 3.4A1 1 0 0 0 5.2 17h13.6a1 1 0 0 0 .9-1.6L18 12V8a6 6 0 0 0-6-6zm-2 17a2 2 0 0 0 4 0z"/></svg>
+                @if(($notifProses ?? 0) > 0)
+                    <span class="js-notif-badge absolute top-0.5 right-0 min-w-[18px] h-[18px] px-1 rounded-full bg-[#ef4b43] text-white text-[10px] font-bold flex items-center justify-center">{{ $notifProses }}</span>
+                @endif
+            </a>
+        @endif
     </div>
 
     <div id="sidebar-overlay" class="hidden md:hidden fixed inset-0 z-40 bg-black/50"></div>
@@ -224,6 +251,17 @@
             document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
             window.matchMedia('(min-width: 768px)').addEventListener('change', function (e) { if (e.matches) closeMenu(); });
         })();
+    </script>
+    <script>
+        // Isi atribut data-label pada sel tabel "tbl-stack" dari judul kolomnya (dipakai tampilan kartu di HP)
+        document.querySelectorAll('table.tbl-stack').forEach(function (tbl) {
+            var heads = Array.prototype.map.call(tbl.querySelectorAll('thead th'), function (th) { return th.textContent.trim(); });
+            tbl.querySelectorAll('tbody tr').forEach(function (tr) {
+                var cells = tr.children;
+                if (cells.length !== heads.length) return;
+                Array.prototype.forEach.call(cells, function (td, i) { td.setAttribute('data-label', heads[i]); });
+            });
+        });
     </script>
     @include('partials.animasi')
 </body>

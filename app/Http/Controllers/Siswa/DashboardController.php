@@ -38,6 +38,14 @@ class DashboardController extends Controller
 
         $riwayat = $query->take(6)->get();
 
-        return view('siswa.dashboard', compact('riwayat', 'stats', 'status'));
+        // Notifikasi: aduan yang sedang diproses (sudah disetujui, belum selesai)
+        $sedangDiproses = $user->aduan()
+            ->with(['kategori', 'lokasi', 'teknisi'])
+            ->where('status', 'approved')
+            ->latest('updated_at')
+            ->take(5)
+            ->get();
+
+        return view('siswa.dashboard', compact('riwayat', 'stats', 'status', 'sedangDiproses'));
     }
 }

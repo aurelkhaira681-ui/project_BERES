@@ -34,7 +34,7 @@
     ];
 @endphp
 
-<div class="reg-font min-h-screen grid grid-cols-1 md:grid-cols-2">
+<div class="reg-font min-h-screen grid grid-cols-1 lg:grid-cols-2">
 
     {{-- ================= PANEL KIRI ================= --}}
     @include('partials.reg-panel', [

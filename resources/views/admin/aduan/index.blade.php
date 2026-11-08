@@ -97,7 +97,7 @@
 
     {{-- Tabel --}}
     <div class="overflow-x-auto">
-        <table class="w-full text-sm min-w-[860px]">
+        <table class="tbl-stack w-full text-sm min-w-[860px]">
             <thead>
                 <tr class="text-left text-[#40608f] text-xs font-bold border-b border-slate-100">
                     <th class="py-3 pr-3 w-10">No.</th><th class="pr-3">No. Tiket</th><th class="pr-3">Siswa</th><th class="pr-3">Kategori</th><th class="pr-3">Lokasi</th><th class="pr-3">Teknisi</th><th class="pr-3">Tanggal</th><th class="pr-3">Status</th><th class="text-center">Aksi</th>
