@@ -12,6 +12,7 @@ use chillerlan\QRCode\Output\QROutputInterface;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 
 class AduanController extends Controller
@@ -91,6 +92,7 @@ class AduanController extends Controller
         $data = $request->validate([
             'kategori_kerusakan_id' => ['required', 'exists:kategori_kerusakan,id'],
             'lokasi_id' => ['required', 'exists:lokasi,id'],
+            'prioritas' => ['nullable', Rule::in(Aduan::PRIORITAS)],
             'tanggal_kejadian' => ['required', 'date'],
             'deskripsi' => ['required', 'string', 'min:10'],
             'foto.*' => ['nullable', 'image', 'max:2048'],
@@ -109,10 +111,14 @@ class AduanController extends Controller
             Lokasi::find($data['lokasi_id'])?->jurusan,
         );
 
+        $prioritas = $data['prioritas'] ?? 'sedang';
+        unset($data['prioritas']);
+
         $aduan = $request->user()->aduan()->create([
             ...$data,
             'teknisi_id' => $teknisi?->id,
             'foto' => $fotoPaths,
+            'prioritas' => $prioritas,
             'status' => 'pending',
         ]);
 
@@ -121,6 +127,55 @@ class AduanController extends Controller
             ->route('siswa.aduan.show', $aduan)
             ->with('success', __('Aduan :kode berhasil dikirim.', ['kode' => $aduan->kode_tiket]))
             ->with('unduh_bukti', true);
+    }
+
+    // Deteksi aduan ganda: ruangan + kategori yang sama dan masih belum selesai (dipanggil form via fetch)
+    public function cekGanda(Request $request)
+    {
+        $data = $request->validate([
+            'lokasi_id' => ['required', 'integer'],
+            'kategori_kerusakan_id' => ['required', 'integer'],
+        ]);
+
+        $ganda = Aduan::belumSelesai()
+            ->where('lokasi_id', $data['lokasi_id'])
+            ->where('kategori_kerusakan_id', $data['kategori_kerusakan_id'])
+            ->latest()
+            ->take(3)
+            ->get();
+
+        return response()->json([
+            'jumlah' => $ganda->count(),
+            'aduan' => $ganda->map(fn (Aduan $a) => [
+                'kode' => $a->kode_tiket,
+                'status' => $a->status === 'approved' ? 'Sedang diproses' : 'Menunggu verifikasi',
+                'milikmu' => $a->user_id === $request->user()->id,
+                'tanggal' => $a->created_at->locale('id')->translatedFormat('d M Y'),
+                'url' => $a->user_id === $request->user()->id ? route('siswa.aduan.show', $a) : null,
+            ])->values(),
+        ]);
+    }
+
+    // Rating hasil perbaikan (bintang 1-5) setelah status Selesai
+    public function nilai(Request $request, Aduan $aduan)
+    {
+        abort_unless($aduan->user_id === auth()->id(), 403);
+        abort_unless($aduan->bisaDinilai(), 403, __('Aduan ini tidak bisa dinilai.'));
+
+        $data = $request->validate([
+            'rating' => ['required', 'integer', 'between:1,5'],
+            'ulasan' => ['nullable', 'string', 'max:300'],
+        ]);
+
+        // Tanpa timestamps supaya penilaian tidak dianggap "pembaruan status" di lonceng notifikasi
+        $aduan->timestamps = false;
+        $aduan->update([
+            'rating' => $data['rating'],
+            'ulasan' => $data['ulasan'] ?? null,
+            'dinilai_at' => now(),
+        ]);
+
+        return back()->with('success', __('Terima kasih! Penilaianmu sudah tersimpan.'));
     }
 
     // Bukti laporan (PDF) milik siswa yang bersangkutan

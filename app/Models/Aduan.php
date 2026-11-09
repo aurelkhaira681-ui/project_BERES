@@ -25,6 +25,10 @@ class Aduan extends Model
         'foto',
         'foto_selesai',
         'status',
+        'prioritas',
+        'rating',
+        'ulasan',
+        'dinilai_at',
         'catatan_admin',
         'catatan_perbaikan',
         'diverifikasi_at',
@@ -37,7 +41,10 @@ class Aduan extends Model
         'tanggal_kejadian' => 'datetime',
         'diverifikasi_at' => 'datetime',
         'selesai_at' => 'datetime',
+        'dinilai_at' => 'datetime',
     ];
+
+    public const PRIORITAS = ['rendah', 'sedang', 'mendesak'];
 
     protected static function booted(): void
     {
@@ -108,5 +115,35 @@ class Aduan extends Model
             'selesai' => 'bg-blue-100 text-blue-700',
             default => 'bg-gray-100 text-gray-700',
         };
+    }
+
+    // ===== Prioritas / urgensi =====
+
+    /** Urutkan: Mendesak -> Sedang -> Rendah, lalu yang terbaru. Dipakai di dashboard & daftar admin. */
+    public function scopeUrutPrioritas($query)
+    {
+        return $query->orderByRaw("CASE prioritas WHEN 'mendesak' THEN 0 WHEN 'sedang' THEN 1 ELSE 2 END")->latest();
+    }
+
+    /** Aduan yang belum selesai ditangani (menunggu / diproses). */
+    public function scopeBelumSelesai($query)
+    {
+        return $query->whereIn('status', ['pending', 'approved']);
+    }
+
+    public function prioritasLabel(): string
+    {
+        return ucfirst($this->prioritas ?: 'sedang');
+    }
+
+    public function isMendesak(): bool
+    {
+        return $this->prioritas === 'mendesak';
+    }
+
+    /** Aduan sudah selesai dan siswa belum memberi bintang. */
+    public function bisaDinilai(): bool
+    {
+        return $this->status === 'selesai' && $this->rating === null;
     }
 }

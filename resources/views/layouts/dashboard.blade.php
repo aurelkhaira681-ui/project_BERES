@@ -33,7 +33,7 @@
         }
     </style>
 </head>
-<body class="{{ auth()->user()->isAdmin() ? 'bg-gradient-to-br from-[#eaf2ff] via-[#f3f7fd] to-[#eaf1fc]' : 'bg-[#f4f7fc]' }} text-slate-800 min-h-screen md:flex">
+<body class="text-slate-800 min-h-screen md:flex" style="background-color:#f3f6fd; background-image: radial-gradient(900px 500px at 8% -10%, rgba(80,140,255,.16), transparent 60%), radial-gradient(700px 480px at 100% 20%, rgba(150,120,255,.11), transparent 60%), radial-gradient(800px 500px at 40% 110%, rgba(60,200,220,.10), transparent 60%); background-attachment: fixed;">
 
 @php
     $u = auth()->user();
@@ -58,8 +58,9 @@
             ['siswa.akun',          'Akun Saya',      'user',   request()->routeIs('siswa.akun')],
         ];
         $caption = 'Siswa · ' . $u->kelas;
-        $notifSiswa = $u->aduan()->where('status', '!=', 'pending')->where('updated_at', '>=', now()->subDays(7))->count();
-        $notifProses = $u->aduan()->where('status', 'approved')->count();
+        // lencana lonceng = pembaruan status yang belum dibaca (disetujui / dikerjakan / selesai / ditolak)
+        $notifSiswa = $u->notifikasiBelumDibaca()->count();
+        $notifProses = $notifSiswa;
     } else {
         $menuTitle = 'Menu Utama';
         $nav = [
@@ -73,14 +74,14 @@
 @endphp
 
     {{-- TOP BAR KHUSUS HP --}}
-    <div class="md:hidden fixed top-0 inset-x-0 z-30 h-14 bg-[#12305f] text-white flex items-center gap-3 px-4 shadow">
+    <div class="md:hidden fixed top-0 inset-x-0 z-30 h-14 text-white flex items-center gap-3 px-4 shadow-lg shadow-blue-900/20" style="background: linear-gradient(90deg,#16408a,#12346b 60%,#0e2a58)">
         <button id="menu-open" type="button" aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false" class="p-2 -ml-2 rounded-lg hover:bg-white/10">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
         @include('partials.logo-brand', ['class' => 'w-9'])
         <span class="font-extrabold text-lg tracking-tight">BERES</span>
         @if($u->isSiswa())
-            <a href="{{ route('siswa.riwayat', ['status' => 'approved']) }}" aria-label="Aduan sedang diproses" class="relative ml-auto p-2 -mr-2 rounded-lg hover:bg-white/10">
+            <a href="{{ route('siswa.dashboard') }}#notif" aria-label="Pembaruan aduan" class="relative ml-auto p-2 -mr-2 rounded-lg hover:bg-white/10">
                 <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a6 6 0 0 0-6 6v4l-1.7 3.4A1 1 0 0 0 5.2 17h13.6a1 1 0 0 0 .9-1.6L18 12V8a6 6 0 0 0-6-6zm-2 17a2 2 0 0 0 4 0z"/></svg>
                 @if(($notifProses ?? 0) > 0)
                     <span class="js-notif-badge absolute top-0.5 right-0 min-w-[18px] h-[18px] px-1 rounded-full bg-[#ef4b43] text-white text-[10px] font-bold flex items-center justify-center">{{ $notifProses }}</span>
@@ -117,26 +118,36 @@
             $sbMenunggu = $u->aduan()->where('status', 'pending')->count();
             $sbDiproses = $u->aduan()->where('status', 'approved')->count();
             $sbAktif = $sbMenunggu + $sbDiproses;
+            $sbMendesak = 0;
         } else {
             $sbAktif = \App\Models\Aduan::where('status', 'pending')->count();
+            $sbMendesak = \App\Models\Aduan::belumSelesai()->where('prioritas', 'mendesak')->count();
         }
         $sbSparkle = '<path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z"/>';
     @endphp
     <style>
         @keyframes sbTwinkle { 0%, 100% { opacity: .15; transform: scale(.7) rotate(0); } 50% { opacity: .85; transform: scale(1.15) rotate(20deg); } }
+        @keyframes sbGlow { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
         .sb-spark { position: absolute; fill: #fff; animation: sbTwinkle 4s ease-in-out infinite; }
-        @media (prefers-reduced-motion: reduce) { .sb-spark { animation: none; opacity: .3; } }
+        .sb-glass { background: linear-gradient(145deg, rgba(255,255,255,.14), rgba(255,255,255,.05)); border: 1px solid rgba(255,255,255,.16); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+        .sb-active { background: #fff; color: #12346b; box-shadow: 0 10px 26px rgba(4, 20, 70, .38); }
+        .sb-active .sb-ico { background: linear-gradient(135deg, #2f7cf6, #6aa8ff); color: #fff; box-shadow: 0 6px 14px rgba(47,124,246,.45); }
+        .sb-glow { animation: sbGlow 2.4s ease-in-out infinite; }
+        #sidebar::-webkit-scrollbar { width: 0; }
+        @media (prefers-reduced-motion: reduce) { .sb-spark, .sb-glow { animation: none; opacity: .3; } }
     </style>
     <aside id="sidebar"
-           class="fixed inset-y-0 left-0 z-50 w-64 max-w-[82vw] -translate-x-full transition-transform duration-200 ease-out
-                  md:sticky md:top-0 md:h-screen md:max-w-none md:translate-x-0 md:z-auto
-                  bg-gradient-to-b from-[#16408a] via-[#12346b] to-[#0b2250] text-white flex flex-col shrink-0 overflow-y-auto">
+           class="fixed inset-y-0 left-0 z-50 w-72 max-w-[84vw] -translate-x-full transition-transform duration-200 ease-out rounded-r-[28px]
+                  md:sticky md:top-3 md:m-3 md:mr-0 md:w-[17.5rem] md:h-[calc(100vh-1.5rem)] md:max-w-none md:translate-x-0 md:z-auto md:rounded-[28px]
+                  text-white flex flex-col shrink-0 overflow-y-auto overflow-x-hidden shadow-[0_24px_60px_rgba(10,40,110,.35)] ring-1 ring-white/10"
+           style="background: linear-gradient(165deg, #1d52bd 0%, #12346b 42%, #0a1d45 100%)">
 
         {{-- dekorasi latar: cahaya, pola titik, bintang berkelip --}}
         <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-            <div class="absolute -top-24 -left-20 w-72 h-72 rounded-full" style="background: radial-gradient(circle, rgba(86,160,255,.50), transparent 65%)"></div>
-            <div class="absolute bottom-16 -right-28 w-72 h-72 rounded-full" style="background: radial-gradient(circle, rgba(130,110,255,.30), transparent 65%)"></div>
-            <div class="absolute inset-0 opacity-[.10]" style="background-image: radial-gradient(#fff 1px, transparent 1.3px); background-size: 18px 18px; -webkit-mask-image: linear-gradient(to bottom, #000, transparent 60%); mask-image: linear-gradient(to bottom, #000, transparent 60%)"></div>
+            <div class="absolute -top-24 -left-20 w-72 h-72 rounded-full" style="background: radial-gradient(circle, rgba(86,160,255,.55), transparent 65%)"></div>
+            <div class="absolute top-1/2 -right-32 w-72 h-72 rounded-full" style="background: radial-gradient(circle, rgba(150,110,255,.34), transparent 65%)"></div>
+            <div class="absolute -bottom-24 -left-10 w-64 h-64 rounded-full" style="background: radial-gradient(circle, rgba(40,200,220,.22), transparent 65%)"></div>
+            <div class="absolute inset-0 opacity-[.10]" style="background-image: radial-gradient(#fff 1px, transparent 1.3px); background-size: 18px 18px; -webkit-mask-image: linear-gradient(to bottom, #000, transparent 55%); mask-image: linear-gradient(to bottom, #000, transparent 55%)"></div>
             <svg class="sb-spark w-3 h-3" style="left: 78%; top: 6%" viewBox="0 0 24 24">{!! $sbSparkle !!}</svg>
             <svg class="sb-spark w-2.5 h-2.5" style="left: 88%; top: 15%; animation-delay: -1.3s" viewBox="0 0 24 24">{!! $sbSparkle !!}</svg>
             <svg class="sb-spark w-2 h-2" style="left: 62%; top: 22%; animation-delay: -2.4s" viewBox="0 0 24 24">{!! $sbSparkle !!}</svg>
@@ -144,12 +155,15 @@
             <svg class="sb-spark w-2 h-2" style="left: 90%; top: 70%; animation-delay: -.8s" viewBox="0 0 24 24">{!! $sbSparkle !!}</svg>
         </div>
 
-        <div class="relative flex items-center justify-between gap-2 px-5 pt-6 pb-5">
+        {{-- brand --}}
+        <div class="relative flex items-center justify-between gap-2 px-5 pt-6 pb-4">
             <div class="flex items-center gap-3 min-w-0">
-                @include('partials.logo-brand', ['class' => 'w-12'])
+                <span class="sb-glass w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center">
+                    @include('partials.logo-brand', ['class' => 'w-8'])
+                </span>
                 <div class="min-w-0">
                     <p class="font-extrabold text-xl tracking-tight leading-none">BERES</p>
-                    <p class="text-[10px] leading-tight text-white/70 mt-1">Sistem Pengaduan Sarana Sekolah</p>
+                    <p class="text-[10px] leading-tight text-white/65 mt-1">Sistem Pengaduan Sarana Sekolah</p>
                 </div>
             </div>
             <button id="menu-close" type="button" aria-label="Tutup menu" class="md:hidden p-1.5 -mr-1 rounded-lg hover:bg-white/10">
@@ -157,44 +171,58 @@
             </button>
         </div>
 
-        <div class="relative flex-1 px-3 mt-1">
+        <div class="relative flex-1 px-3.5 mt-1">
             <nav class="space-y-1.5">
-                <p class="px-3 text-[11px] uppercase tracking-wider text-white/50 mb-2" data-i18n>{{ $menuTitle }}</p>
+                <p class="flex items-center gap-2 px-2 text-[10.5px] font-bold uppercase tracking-[.16em] text-white/45 mb-2.5">
+                    <span data-i18n>{{ $menuTitle }}</span><span class="h-px flex-1 bg-white/10"></span>
+                </p>
                 @foreach($nav as [$route, $label, $icon, $active])
                     <a href="{{ route($route) }}"
-                       class="group relative flex items-center gap-3 pl-2.5 pr-3 py-2 rounded-xl text-[15px] font-medium transition duration-200 {{ $active ? 'text-white shadow-[0_8px_20px_rgba(10,50,150,.45)]' : 'text-white/80 hover:text-white hover:bg-white/[.07] hover:translate-x-0.5' }}"
-                       @if($active) style="background: linear-gradient(90deg, rgba(47,124,246,.95), rgba(31,111,229,.40))" aria-current="page" @endif>
-                        @if($active)<span class="absolute -left-3 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-[#8cc4ff]"></span>@endif
-                        <span class="w-9 h-9 shrink-0 rounded-lg flex items-center justify-center transition {{ $active ? 'bg-white/20' : 'bg-white/[.07] group-hover:bg-white/15' }}">
+                       class="group relative flex items-center gap-3 pl-2 pr-3 py-2 rounded-2xl text-[15px] font-semibold transition duration-200 {{ $active ? 'sb-active' : 'text-white/80 hover:text-white hover:bg-white/[.09] hover:translate-x-0.5' }}"
+                       @if($active) aria-current="page" @endif>
+                        <span class="sb-ico w-9 h-9 shrink-0 rounded-xl flex items-center justify-center transition {{ $active ? '' : 'bg-white/[.08] group-hover:bg-white/15' }}">
                             <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="currentColor">{!! $navIcons[$icon] !!}</svg>
                         </span>
                         <span data-i18n>{{ $label }}</span>
                         @if($route === 'siswa.riwayat' && ($notifSiswa ?? 0) > 0)
-                            <span class="js-notif-badge ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-[#ef4b43] text-white text-[11px] font-bold flex items-center justify-center" title="Aduan diperbarui dalam 7 hari terakhir">{{ $notifSiswa }}</span>
+                            <span class="js-notif-badge ml-auto min-w-[22px] h-[22px] px-1.5 rounded-full bg-[#ef4b43] text-white text-[11px] font-bold flex items-center justify-center shadow-[0_0_0_3px_rgba(239,75,67,.25)]" title="Pembaruan status aduan yang belum dibaca">{{ $notifSiswa }}</span>
+                        @endif
+                        @if($route === 'admin.aduan.index' && $sbMendesak > 0)
+                            <span class="js-notif-badge ml-auto min-w-[22px] h-[22px] px-1.5 rounded-full bg-[#ef4b43] text-white text-[11px] font-bold flex items-center justify-center shadow-[0_0_0_3px_rgba(239,75,67,.25)] sb-glow" title="Aduan mendesak yang belum selesai">{{ $sbMendesak }}</span>
                         @endif
                     </a>
                 @endforeach
             </nav>
 
             {{-- kartu ringkasan cepat --}}
-            <div class="relative mt-5 rounded-2xl border border-white/15 bg-white/[.08] p-4 overflow-hidden">
-                <div class="absolute -top-10 -right-10 w-28 h-28 rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(120,190,255,.45), transparent 70%)"></div>
+            <div class="sb-glass relative mt-5 rounded-3xl p-4 overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(130,190,255,.5), transparent 70%)"></div>
                 <div class="relative">
-                    <div class="flex items-center gap-2 text-[11px] uppercase tracking-wider text-white/65">
+                    <div class="flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[.14em] text-white/70">
                         <span class="relative flex h-2 w-2">
                             <span class="absolute inline-flex h-full w-full rounded-full bg-[#ffb340] opacity-70 animate-ping"></span>
                             <span class="relative inline-flex h-2 w-2 rounded-full bg-[#ffb340]"></span>
                         </span>
                         <span data-i18n>{{ $u->isSiswa() ? 'Aduan Aktif' : 'Menunggu Verifikasi' }}</span>
                     </div>
-                    <p class="mt-2 text-3xl font-extrabold leading-none" data-count="{{ $sbAktif }}">{{ $sbAktif }}</p>
+                    <p class="mt-2.5 text-4xl font-extrabold leading-none tracking-tight" data-count="{{ $sbAktif }}">{{ $sbAktif }}</p>
                     @if($u->isSiswa())
-                        <p class="text-xs text-white/65 mt-1.5">{{ $sbMenunggu }} <span data-i18n>menunggu</span> · {{ $sbDiproses }} <span data-i18n>diproses</span></p>
+                        @php $sbTot = max(1, $sbAktif); @endphp
+                        <div class="mt-3 flex h-1.5 rounded-full bg-white/15 overflow-hidden">
+                            <span class="bg-[#ffb340]" style="width: {{ $sbMenunggu / $sbTot * 100 }}%"></span>
+                            <span class="bg-[#7cc0ff]" style="width: {{ $sbDiproses / $sbTot * 100 }}%"></span>
+                        </div>
+                        <p class="text-xs text-white/70 mt-2">{{ $sbMenunggu }} <span data-i18n>menunggu</span> · {{ $sbDiproses }} <span data-i18n>diproses</span></p>
                     @else
-                        <p class="text-xs text-white/65 mt-1.5" data-i18n>aduan perlu ditinjau</p>
+                        <p class="text-xs text-white/70 mt-2" data-i18n>aduan perlu ditinjau</p>
+                        @if($sbMendesak > 0)
+                            <p class="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#ef4b43]/90 px-2.5 py-1 text-[11px] font-bold">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white sb-glow"></span>{{ $sbMendesak }} mendesak
+                            </p>
+                        @endif
                     @endif
                     <a href="{{ $u->isSiswa() ? route('siswa.aduan.create') : route('admin.aduan.index', ['status' => 'pending']) }}"
-                       class="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-[#f2f7ff] hover:bg-[#dcebff] text-[#12336a] text-[13px] font-bold py-2 transition">
+                       class="mt-3.5 flex items-center justify-center gap-1.5 rounded-xl bg-white hover:bg-[#e9f2ff] text-[#12336a] text-[13px] font-extrabold py-2.5 transition shadow-lg shadow-blue-950/20" style="background:#fff">
                         <span data-i18n>{{ $u->isSiswa() ? 'Ajukan Sekarang' : 'Tinjau Sekarang' }}</span>
                         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </a>
@@ -202,10 +230,10 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('logout') }}" class="relative px-3 pt-4 pb-3">
+        <form method="POST" action="{{ route('logout') }}" class="relative px-3.5 pt-4 pb-3">
             @csrf
-            <button class="w-full group flex items-center gap-3 pl-2.5 pr-3 py-2 rounded-xl text-[15px] font-medium text-left text-white/80 hover:text-white hover:bg-[#ef4b43]/20 transition">
-                <span class="w-9 h-9 shrink-0 rounded-lg bg-white/[.07] group-hover:bg-[#ef4b43]/30 flex items-center justify-center transition">
+            <button class="w-full group flex items-center gap-3 pl-2 pr-3 py-2 rounded-2xl text-[15px] font-semibold text-left text-white/80 hover:text-white hover:bg-[#ef4b43]/20 transition">
+                <span class="w-9 h-9 shrink-0 rounded-xl bg-white/[.08] group-hover:bg-[#ef4b43]/40 flex items-center justify-center transition">
                     <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
                 </span>
                 <span data-i18n>Keluar</span>
@@ -213,7 +241,7 @@
         </form>
 
         {{-- kartu pengguna (klik = buka Akun Saya) --}}
-        <a href="{{ route($u->isAdmin() ? 'admin.akun' : 'siswa.akun') }}" class="group relative px-5 py-4 border-t border-white/10 flex items-center gap-3 hover:bg-white/5 transition">
+        <a href="{{ route($u->isAdmin() ? 'admin.akun' : 'siswa.akun') }}" class="sb-glass group relative mx-3 mb-3 rounded-2xl px-3.5 py-3 flex items-center gap-3 hover:bg-white/10 transition">
             <span class="relative shrink-0">
                 <span class="block w-11 h-11 rounded-full p-[2px]" style="background: linear-gradient(135deg, #5aa7ff, #a5e3ff)">
                     @if($fotoUrl)
@@ -225,7 +253,7 @@
                 <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#22c55e] border-2 border-[#0e2a58]"></span>
             </span>
             <div class="text-sm leading-tight min-w-0 flex-1">
-                <p class="font-semibold truncate">{{ $u->name }}</p>
+                <p class="font-bold truncate">{{ $u->name }}</p>
                 <p class="text-white/60 text-xs truncate mt-0.5">{{ $caption }}</p>
             </div>
             <svg class="w-4 h-4 shrink-0 text-white/40 group-hover:text-white/80 group-hover:translate-x-0.5 transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
@@ -244,7 +272,7 @@
         // siswa: tombol "Ajukan Aduan" jadi tombol utama di tengah
         $bnItems = $u->isSiswa() ? [$nav[0], $nav[2], 'fab', $nav[3]] : $nav;
     @endphp
-    <nav aria-label="Navigasi utama" class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(20,50,105,0.08)] pb-[env(safe-area-inset-bottom)]">
+    <nav aria-label="Navigasi utama" class="md:hidden fixed bottom-2 inset-x-2 z-30 rounded-3xl bg-white/80 backdrop-blur-xl border border-white shadow-[0_10px_40px_rgba(20,50,105,0.22)] pb-[env(safe-area-inset-bottom)]">
         <div class="grid grid-cols-4 items-end px-1">
             @foreach($bnItems as $item)
                 @if($item === 'fab')

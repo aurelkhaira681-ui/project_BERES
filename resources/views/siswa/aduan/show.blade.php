@@ -14,12 +14,15 @@
             <span>· Diajukan {{ $aduan->created_at->format('d M Y, H.i') }}</span>
         </p>
     </div>
-    @include('partials.status-badge', ['item' => $aduan])
+    <div class="flex items-center gap-2">
+        @include('partials.prioritas-badge', ['item' => $aduan])
+        @include('partials.status-badge', ['item' => $aduan])
+    </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
     <div class="lg:col-span-2 lg:row-start-1 space-y-6">
-        <div class="{{ $card }} p-5">
+        <div class="{{ $card }} !rounded-3xl p-5">
             <h2 class="font-semibold mb-5">Progres Penanganan</h2>
 
             @php
@@ -86,7 +89,7 @@
     {{-- Detail Kerusakan & Hasil Perbaikan: selebar halaman, berdampingan di layar lebar, atas-bawah di HP --}}
     @php $adaHasil = $aduan->status === 'selesai' && (filled($aduan->catatan_perbaikan) || !empty($aduan->foto_selesai)); @endphp
     <div class="grid grid-cols-1 {{ $adaHasil ? 'lg:grid-cols-2' : '' }} gap-6 items-start lg:col-span-3 lg:row-start-2">
-        <div class="{{ $card }} p-5">
+        <div class="{{ $card }} !rounded-3xl p-5">
             <h2 class="font-semibold mb-4">Detail Kerusakan</h2>
             <div class="grid grid-cols-1 min-[420px]:grid-cols-2 {{ $adaHasil ? 'lg:grid-cols-1 xl:grid-cols-2' : '' }} gap-4 mb-4 text-sm [&>div]:min-w-0 [&_p]:break-words">
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Kategori</p><p class="font-medium">{{ $aduan->kategori->icon }} {{ $aduan->kategori->nama }}</p></div>
@@ -112,7 +115,7 @@
         </div>
 
         @if($aduan->status === 'selesai' && (filled($aduan->catatan_perbaikan) || !empty($aduan->foto_selesai)))
-            <div class="{{ $card }} p-5">
+            <div class="{{ $card }} !rounded-3xl p-5">
                 <h2 class="font-semibold mb-3">Hasil Perbaikan</h2>
                 @if($aduan->catatan_perbaikan)
                     <p class="text-sm text-slate-600 mb-3">{{ $aduan->catatan_perbaikan }}</p>
@@ -128,8 +131,45 @@
         @endif
     </div>
 
+
+    {{-- Rating hasil perbaikan: muncul setelah status Selesai --}}
+    @if($aduan->status === 'selesai')
+        <div id="nilai" class="lg:col-span-3 lg:row-start-3 scroll-mt-6 rounded-3xl border border-[#ffe2a8] p-5 sm:p-6" style="background: linear-gradient(120deg,#fff6df,#fffbf1)">
+            @if($aduan->rating)
+                <div class="flex flex-wrap items-center gap-4">
+                    <span class="w-12 h-12 rounded-2xl bg-[#ffe3a3] flex items-center justify-center text-2xl">⭐</span>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-extrabold text-[#7a4b00]">Terima kasih atas penilaianmu!</p>
+                        <p class="text-2xl tracking-widest text-[#f5a524] leading-tight">{{ str_repeat('★', $aduan->rating) }}<span class="opacity-30">{{ str_repeat('★', 5 - $aduan->rating) }}</span></p>
+                        @if($aduan->ulasan)<p class="text-sm text-[#7a4b00]/80 mt-1">“{{ $aduan->ulasan }}”</p>@endif
+                    </div>
+                </div>
+            @else
+                <form method="POST" action="{{ route('siswa.aduan.nilai', $aduan) }}" class="grid md:grid-cols-[auto_1fr_auto] gap-4 items-end">
+                    @csrf
+                    <div>
+                        <p class="font-extrabold text-[#7a4b00]">Bagaimana hasil perbaikannya?</p>
+                        <p class="text-xs text-[#a56a10] mb-2">Beri bintang untuk pekerjaan {{ $aduan->teknisi?->nama ?? 'teknisi' }}.</p>
+                        <div class="flex flex-row-reverse justify-end gap-1" id="bintang">
+                            @for($i = 5; $i >= 1; $i--)
+                                <input type="radio" name="rating" id="rt{{ $i }}" value="{{ $i }}" class="peer sr-only" required {{ (int) old('rating') === $i ? 'checked' : '' }}>
+                                <label for="rt{{ $i }}" title="{{ $i }} bintang" class="cursor-pointer text-4xl leading-none text-[#e2cfa0] transition hover:scale-110 peer-checked:text-[#f5a524] peer-focus-visible:ring-2 peer-focus-visible:ring-[#4a86e8] rounded">★</label>
+                            @endfor
+                        </div>
+                    </div>
+                    <div>
+                        <label for="ulasan" class="block text-xs font-bold text-[#a56a10] mb-1">Ulasan singkat (opsional)</label>
+                        <input id="ulasan" name="ulasan" maxlength="300" value="{{ old('ulasan') }}" placeholder="Contoh: cepat dan rapi, terima kasih!" class="w-full rounded-xl border border-[#ffe2a8] bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#f5a524] focus:ring-2 focus:ring-[#f5a524]/25">
+                    </div>
+                    <button class="rounded-2xl px-6 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-orange-500/30 hover:opacity-95 transition" style="background:linear-gradient(135deg,#f5a524,#ff7a45)">Kirim Nilai</button>
+                </form>
+                @error('rating')<p class="mt-2 text-xs font-semibold text-[#c2352d]">{{ $message }}</p>@enderror
+            @endif
+        </div>
+    @endif
+
     <div class="space-y-4 lg:col-start-3 lg:row-start-1">
-        <div class="{{ $card }} p-5">
+        <div class="{{ $card }} !rounded-3xl p-5">
             <h2 class="font-semibold mb-3">Data Pelapor</h2>
             <div class="flex items-center gap-3 mb-3">
                 <div class="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-sm font-semibold">
@@ -158,6 +198,7 @@
         @endif
     </div>
 </div>
+<style>#bintang label:hover, #bintang label:hover ~ label { color: #f5a524; }</style>
 @if(session('unduh_bukti'))
     {{-- Laporan baru saja dikirim: mulai unduh bukti PDF otomatis (tombol di sidebar sebagai cadangan) --}}
     <iframe src="{{ route('siswa.aduan.bukti', $aduan) }}" class="hidden" aria-hidden="true" tabindex="-1"></iframe>

@@ -11,13 +11,14 @@
         ['Disetujui',   $stats['disetujui'], 'from-[#dff7e8] to-[#f2fcf6] border-[#c4eed6]', 'bg-[#22b36b]', '<path d="M5 12.5l4.5 4.5L19 7.5"/>'],
         ['Ditolak',     $stats['ditolak'],   'from-[#ffe3e1] to-[#fff4f3] border-[#ffd0cc]', 'bg-[#ef4b43]', '<path d="M6 6l12 12M18 6L6 18"/>'],
     ];
-    $filterAktif = request()->hasAny(['q', 'kategori', 'lokasi', 'teknisi', 'status', 'tanggal']);
+    $mendesakAktif = $stats['mendesak'];
+    $filterAktif = request()->hasAny(['q', 'kategori', 'lokasi', 'teknisi', 'status', 'tanggal', 'prioritas']);
 @endphp
 
 {{-- Header --}}
 <div class="flex flex-wrap items-start justify-between gap-3 mb-5">
     <div class="flex items-center gap-3">
-        <span class="w-11 h-11 rounded-xl bg-[#0f3a9a] text-white flex items-center justify-center">
+        <span class="w-11 h-11 rounded-2xl text-white flex items-center justify-center shadow-md shadow-blue-700/30" style="background:linear-gradient(135deg,#2f7cf6,#4f46e5)">
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M4 7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v2H4zm0 4h16v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/></svg>
         </span>
         <div>
@@ -34,7 +35,7 @@
 {{-- Kartu ringkas --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
     @foreach($kartu as [$nama, $angka, $bg, $ikonBg, $ikon])
-        <div class="rounded-2xl border bg-gradient-to-br {{ $bg }} px-4 py-3.5 flex items-center gap-3">
+        <div class="b-lift rounded-3xl border bg-gradient-to-br {{ $bg }} px-4 py-3.5 flex items-center gap-3">
             <span class="w-10 h-10 shrink-0 rounded-xl {{ $ikonBg }} text-white flex items-center justify-center">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">{!! $ikon !!}</svg>
             </span>
@@ -46,10 +47,18 @@
     @endforeach
 </div>
 
-<div class="{{ $card }} p-4 sm:p-5">
+@if($mendesakAktif > 0)
+    <a href="{{ route('admin.aduan.index', ['prioritas' => 'mendesak']) }}" class="mb-5 flex items-center gap-3 rounded-3xl border border-[#ffd0cc] px-4 py-3 hover:shadow-md transition" style="background: linear-gradient(120deg,#fff0ee,#fff8f7)">
+        <span class="relative flex h-3 w-3 shrink-0"><span class="absolute inline-flex h-full w-full rounded-full bg-[#ef4b43] opacity-70 animate-ping"></span><span class="relative inline-flex h-3 w-3 rounded-full bg-[#ef4b43]"></span></span>
+        <span class="min-w-0 flex-1 text-sm text-[#7a1f1a]"><b>{{ $mendesakAktif }} aduan mendesak</b> belum selesai, misalnya korsleting atau atap bocor. Tampil paling atas di daftar.</span>
+        <span class="text-sm font-bold text-[#c2352d] whitespace-nowrap">Lihat →</span>
+    </a>
+@endif
+
+<div class="{{ $card }} !rounded-3xl p-4 sm:p-5">
 
     {{-- Filter --}}
-    <form method="GET" class="grid sm:grid-cols-2 lg:grid-cols-7 gap-3 mb-5">
+    <form method="GET" class="grid sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3 mb-5">
         <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari tiket, siswa, lokasi..." class="{{ $sel }} lg:col-span-2">
 
         <select name="tanggal" class="{{ $sel }}">
@@ -62,6 +71,12 @@
             <option value="">Semua Kategori</option>
             @foreach($kategoriList as $k)
                 <option value="{{ $k->id }}" @selected(request('kategori') == $k->id)>{{ $k->nama }}</option>
+            @endforeach
+        </select>
+
+        <select name="prioritas" class="{{ $sel }}">
+            @foreach(['' => 'Semua Prioritas', 'mendesak' => 'Mendesak', 'sedang' => 'Sedang', 'rendah' => 'Rendah'] as $v => $l)
+                <option value="{{ $v }}" @selected(request('prioritas', '') === $v)>{{ $l }}</option>
             @endforeach
         </select>
 
@@ -86,20 +101,20 @@
             @endforeach
         </select>
 
-        <div class="flex gap-2 sm:col-span-2 lg:col-span-7 lg:justify-end">
+        <div class="flex gap-2 sm:col-span-2 lg:col-span-4 xl:col-span-8 lg:justify-end">
             @if($filterAktif)
                 <a href="{{ route('admin.aduan.index') }}" class="rounded-xl bg-[#e6effb] hover:bg-[#d8e5f8] text-[#0f2d5c] text-sm font-bold px-5 py-2.5 transition">Reset</a>
             @endif
-            <button class="rounded-xl bg-[#0f3a9a] hover:bg-[#0b2f7e] text-white text-sm font-bold px-6 py-2.5 transition">Filter</button>
+            <button class="rounded-xl text-white text-sm font-bold px-6 py-2.5 transition hover:opacity-90" style="background:linear-gradient(135deg,#2f7cf6,#4f46e5)">Filter</button>
         </div>
     </form>
 
     {{-- Tabel --}}
     <div class="overflow-x-auto">
-        <table class="tbl-stack w-full text-sm min-w-[860px]">
+        <table class="tbl-stack w-full text-sm min-w-[980px]">
             <thead>
                 <tr class="text-left text-[#40608f] text-xs font-bold border-b border-slate-100">
-                    <th class="py-3 pr-3 w-10">No.</th><th class="pr-3">No. Tiket</th><th class="pr-3">Siswa</th><th class="pr-3">Kategori</th><th class="pr-3">Lokasi</th><th class="pr-3">Teknisi</th><th class="pr-3">Tanggal</th><th class="pr-3">Status</th><th class="text-center">Aksi</th>
+                    <th class="py-3 pr-3 w-10">No.</th><th class="pr-3">Prioritas</th><th class="pr-3">No. Tiket</th><th class="pr-3">Siswa</th><th class="pr-3">Kategori</th><th class="pr-3">Lokasi</th><th class="pr-3">Teknisi</th><th class="pr-3">Tanggal</th><th class="pr-3">Status</th><th class="text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -114,6 +129,8 @@
                             'teknisi' => $item->teknisi?->nama ?? 'Belum ditunjuk',
                             'tanggal' => $item->tanggal_kejadian->locale('id')->translatedFormat('d M Y'),
                             'status' => $item->statusLabel(),
+                            'prioritas' => $item->prioritasLabel(),
+                            'rating' => $item->rating,
                             'badge' => match ($item->status) {
                                 'pending' => 'bg-[#fff1d6] text-[#c97f00]',
                                 'approved' => 'bg-[#d9f4e5] text-[#15935a]',
@@ -132,8 +149,10 @@
                             ])),
                         ];
                     @endphp
-                    <tr class="border-b border-slate-100 last:border-0 hover:bg-[#f6f9ff]">
+                    @php $daruratBaris = $item->isMendesak() && in_array($item->status, ['pending', 'approved']); @endphp
+                    <tr class="border-b border-slate-100 last:border-0 hover:bg-[#f6f9ff] {{ $daruratBaris ? 'bg-[#fff6f5]' : '' }}">
                         <td class="py-3.5 pr-3 text-[#40608f]">{{ $aduan->firstItem() + $loop->index }}</td>
+                        <td class="pr-3">@include('partials.prioritas-badge', ['item' => $item])</td>
                         <td class="pr-3 font-bold text-[#0f2d5c] whitespace-nowrap">{{ $item->kode_tiket }}</td>
                         <td class="pr-3">{{ $item->user->name }}</td>
                         <td class="pr-3">{{ $item->kategori->nama }}</td>
@@ -148,7 +167,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="9" class="py-10 text-center text-slate-400">Tidak ada aduan yang cocok dengan filter.</td></tr>
+                    <tr><td colspan="10" class="py-10 text-center text-slate-400">Tidak ada aduan yang cocok dengan filter.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -162,7 +181,7 @@
 
 {{-- Modal detail --}}
 <div id="modal-detail" class="hidden fixed inset-0 z-[60] items-center justify-center p-4 bg-[#0b1d3d]/50" role="dialog" aria-modal="true" aria-labelledby="md-judul">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-5">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-5">
         <div class="flex items-center justify-between mb-4">
             <h2 id="md-judul" class="font-extrabold text-lg text-[#0f2d5c]">Detail Pengaduan</h2>
             <button type="button" data-tutup class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500" aria-label="Tutup">✕</button>
@@ -176,6 +195,8 @@
                 <dt class="text-[#5d7aa8]">Lokasi</dt><dd id="md-lokasi" class="font-semibold text-[#0f2d5c] break-words"></dd>
                 <dt class="text-[#5d7aa8]">Teknisi</dt><dd id="md-teknisi" class="font-semibold text-[#0f2d5c]"></dd>
                 <dt class="text-[#5d7aa8]">Tanggal</dt><dd id="md-tanggal" class="font-semibold text-[#0f2d5c]"></dd>
+                <dt class="text-[#5d7aa8]">Prioritas</dt><dd id="md-prioritas" class="font-semibold text-[#0f2d5c]"></dd>
+                <dt class="text-[#5d7aa8]">Rating</dt><dd id="md-rating" class="font-semibold text-[#e2a21a]"></dd>
                 <dt class="text-[#5d7aa8]">Status</dt><dd><span id="md-status" class="inline-flex rounded-full px-3 py-0.5 text-xs font-semibold"></span></dd>
             </dl>
         </div>
@@ -203,6 +224,8 @@
         $('md-teknisi').textContent = d.teknisi;
         $('md-tanggal').textContent = d.tanggal;
         $('md-deskripsi').textContent = d.deskripsi;
+        $('md-prioritas').textContent = d.prioritas;
+        $('md-rating').textContent = d.rating ? '★'.repeat(d.rating) + ' (' + d.rating + '/5)' : '-';
 
         var st = $('md-status');
         st.textContent = d.status;

@@ -43,10 +43,14 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->group(function () {
     Route::get('/dashboard', [SiswaDashboardController::class, 'index'])->name('dashboard');
 
+    Route::post('/notifikasi/baca', [SiswaDashboardController::class, 'bacaNotifikasi'])->name('notifikasi.baca');
+
     Route::get('/aduan/create', [SiswaAduanController::class, 'create'])->name('aduan.create');
+    Route::get('/aduan/cek-ganda', [SiswaAduanController::class, 'cekGanda'])->name('aduan.cek-ganda');
     Route::post('/aduan', [SiswaAduanController::class, 'store'])->name('aduan.store');
     Route::get('/aduan/{aduan}', [SiswaAduanController::class, 'show'])->name('aduan.show');
     Route::get('/aduan/{aduan}/bukti', [SiswaAduanController::class, 'bukti'])->name('aduan.bukti');
+    Route::post('/aduan/{aduan}/nilai', [SiswaAduanController::class, 'nilai'])->name('aduan.nilai');
     Route::delete('/aduan/{aduan}', [SiswaAduanController::class, 'batalkan'])->name('aduan.batalkan');
 
     Route::get('/riwayat', [SiswaAduanController::class, 'riwayat'])->name('riwayat');

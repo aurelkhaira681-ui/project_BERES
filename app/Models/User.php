@@ -23,6 +23,7 @@ class User extends Authenticatable
         'konsentrasi_keahlian',
         'no_hp',
         'foto',
+        'notif_dibaca_at',
     ];
 
     protected $hidden = [
@@ -35,6 +36,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'notif_dibaca_at' => 'datetime',
         ];
     }
 
@@ -59,5 +61,19 @@ class User extends Authenticatable
     public function aduan(): HasMany
     {
         return $this->hasMany(Aduan::class);
+    }
+
+    /**
+     * Notifikasi status untuk siswa: aduan yang sudah disetujui / sedang dikerjakan / selesai / ditolak
+     * dan berubah setelah lonceng terakhir dibuka (maksimal 14 hari ke belakang).
+     */
+    public function notifikasiBelumDibaca()
+    {
+        $batas = now()->subDays(14);
+        $sejak = $this->notif_dibaca_at && $this->notif_dibaca_at->gt($batas) ? $this->notif_dibaca_at : $batas;
+
+        return $this->aduan()
+            ->where('status', '!=', 'pending')
+            ->where('updated_at', '>', $sejak);
     }
 }

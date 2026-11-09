@@ -24,7 +24,7 @@ class DashboardController extends Controller
             'selesai'  => (int) ($counts['selesai'] ?? 0),
         ];
 
-        // Filter riwayat di beranda (dropdown "Semua")
+        // Filter riwayat di beranda
         $status = $request->query('status', 'semua');
         if (!in_array($status, ['pending', 'approved', 'selesai', 'rejected'], true)) {
             $status = 'semua';
@@ -38,14 +38,33 @@ class DashboardController extends Controller
 
         $riwayat = $query->take(6)->get();
 
-        // Notifikasi: aduan yang sedang diproses (sudah disetujui, belum selesai)
-        $sedangDiproses = $user->aduan()
+        // Lonceng notifikasi: pembaruan status (disetujui / sedang dikerjakan / selesai / ditolak)
+        $notifikasi = $user->aduan()
             ->with(['kategori', 'lokasi', 'teknisi'])
-            ->where('status', 'approved')
+            ->where('status', '!=', 'pending')
+            ->where('updated_at', '>=', now()->subDays(14))
             ->latest('updated_at')
-            ->take(5)
+            ->take(8)
+            ->get();
+        $notifBaru = $user->notifikasiBelumDibaca()->count();
+
+        // Ajakan memberi rating: aduan selesai yang belum dinilai
+        $belumDinilai = $user->aduan()
+            ->with(['kategori', 'teknisi'])
+            ->where('status', 'selesai')
+            ->whereNull('rating')
+            ->latest('selesai_at')
+            ->take(3)
             ->get();
 
-        return view('siswa.dashboard', compact('riwayat', 'stats', 'status', 'sedangDiproses'));
+        return view('siswa.dashboard', compact('riwayat', 'stats', 'status', 'notifikasi', 'notifBaru', 'belumDinilai'));
+    }
+
+    // Tandai semua notifikasi sudah dibaca (dipanggil saat lonceng dibuka)
+    public function bacaNotifikasi(Request $request)
+    {
+        $request->user()->forceFill(['notif_dibaca_at' => now()])->saveQuietly();
+
+        return response()->json(['ok' => true]);
     }
 }

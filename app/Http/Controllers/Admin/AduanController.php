@@ -14,7 +14,12 @@ class AduanController extends Controller
     // Query dasar + filter (dipakai halaman daftar dan ekspor)
     private function filtered(Request $request)
     {
-        $query = Aduan::with(['user', 'kategori', 'lokasi', 'teknisi'])->latest();
+        // Mendesak tampil paling atas, lalu Sedang, lalu Rendah (di dalamnya diurutkan terbaru)
+        $query = Aduan::with(['user', 'kategori', 'lokasi', 'teknisi'])->urutPrioritas();
+
+        if (in_array($request->query('prioritas'), Aduan::PRIORITAS, true)) {
+            $query->where('prioritas', $request->query('prioritas'));
+        }
 
         if ($search = $request->query('q')) {
             $query->where(function ($q) use ($search) {
@@ -60,6 +65,7 @@ class AduanController extends Controller
             'pending' => Aduan::where('status', 'pending')->count(),
             'disetujui' => Aduan::whereIn('status', ['approved', 'selesai'])->count(),
             'ditolak' => Aduan::where('status', 'rejected')->count(),
+            'mendesak' => Aduan::belumSelesai()->where('prioritas', 'mendesak')->count(),
         ];
 
         $kategoriList = KategoriKerusakan::orderBy('nama')->get();
@@ -77,7 +83,7 @@ class AduanController extends Controller
         return response()->streamDownload(function () use ($rows) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF"); // BOM agar terbaca benar di Excel
-            fputcsv($out, ['No. Tiket', 'Siswa', 'Kelas', 'Kategori', 'Lokasi', 'Teknisi', 'Tanggal', 'Status', 'Deskripsi']);
+            fputcsv($out, ['No. Tiket', 'Siswa', 'Kelas', 'Kategori', 'Lokasi', 'Teknisi', 'Tanggal', 'Status', 'Prioritas', 'Rating', 'Deskripsi']);
             foreach ($rows as $a) {
                 fputcsv($out, [
                     $a->kode_tiket,
@@ -88,6 +94,8 @@ class AduanController extends Controller
                     $a->teknisi?->nama ?? '-',
                     $a->tanggal_kejadian->format('d-m-Y'),
                     $a->statusLabel(),
+                    $a->prioritasLabel(),
+                    $a->rating ?? '-',
                     $a->deskripsi,
                 ]);
             }

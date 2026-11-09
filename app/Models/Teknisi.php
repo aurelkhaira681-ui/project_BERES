@@ -50,6 +50,13 @@ class Teknisi extends Model
         return $query->withCount(['aduan as aktif_count' => fn ($a) => $a->whereIn('status', ['pending', 'approved'])]);
     }
 
+    /** Tambahkan rating_avg (rata-rata bintang) dan rating_count (jumlah penilaian) dari aduan yang sudah dinilai. */
+    public function scopeDenganRating(Builder $query): Builder
+    {
+        return $query->withAvg(['aduan as rating_avg' => fn ($a) => $a->whereNotNull('rating')], 'rating')
+            ->withCount(['aduan as rating_count' => fn ($a) => $a->whereNotNull('rating')]);
+    }
+
     /** Teknisi aktif di jurusan/bidang tersebut dengan beban paling ringan (null jika tidak ada). */
     public static function untukJurusan(?string $jurusan): ?self
     {

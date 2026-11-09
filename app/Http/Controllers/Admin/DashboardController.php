@@ -60,7 +60,21 @@ class DashboardController extends Controller
 
         $aktivitas = Aduan::with('user')->latest('updated_at')->take(5)->get();
 
-        $bebanTeknisi = Teknisi::beban()->orderByDesc('aktif')->orderByDesc('aktif_count')->orderBy('nama')->get();
+        // Prioritas: aduan yang belum selesai, Mendesak paling atas (lencana merah)
+        $jumlahMendesak = Aduan::belumSelesai()->where('prioritas', 'mendesak')->count();
+        $perluPerhatian = Aduan::with(['user', 'kategori', 'lokasi', 'teknisi'])
+            ->belumSelesai()
+            ->urutPrioritas()
+            ->take(6)
+            ->get();
+
+        $bebanTeknisi = Teknisi::beban()->denganRating()->orderByDesc('aktif')->orderByDesc('aktif_count')->orderBy('nama')->get();
+
+        // Rating hasil perbaikan: rata-rata keseluruhan, dan teknisi dengan rating (tertinggi dulu)
+        $ratingRata = Aduan::whereNotNull('rating')->avg('rating');
+        $ratingJumlah = Aduan::whereNotNull('rating')->count();
+        $ratingTeknisi = $bebanTeknisi->filter(fn ($t) => $t->rating_count > 0)->sortByDesc('rating_avg')->values();
+        $ulasanTerbaru = Aduan::with(['user', 'teknisi'])->whereNotNull('rating')->latest('dinilai_at')->take(3)->get();
 
         // ===== Analitik tambahan (aduan yang ditolak tidak dihitung) =====
         $kategoriTeratas = Aduan::with('kategori')
@@ -95,7 +109,8 @@ class DashboardController extends Controller
 
         return view('admin.dashboard', compact(
             'stats', 'grafik', 'skalaMaks', 'donut', 'aktivitas', 'bebanTeknisi',
-            'kategoriTeratas', 'ruanganTeratas', 'rataSelesai', 'panas', 'panasMaks'
+            'kategoriTeratas', 'ruanganTeratas', 'rataSelesai', 'panas', 'panasMaks',
+            'jumlahMendesak', 'perluPerhatian', 'ratingRata', 'ratingJumlah', 'ratingTeknisi', 'ulasanTerbaru'
         ));
     }
 

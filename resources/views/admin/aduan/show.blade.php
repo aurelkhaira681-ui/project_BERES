@@ -2,111 +2,39 @@
 @section('title', $aduan->kode_tiket . ' - BERES')
 @section('content')
 
-<div class="flex flex-wrap items-start justify-between gap-3 mb-6">
-    <div>
-        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0f2d5c]">{{ Str::limit($aduan->deskripsi, 50) }}</h1>
-        <p class="text-slate-500 text-sm flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span>Tiket <span class="font-semibold text-[#0f2d5c]">#{{ $aduan->kode_tiket }}</span></span>
-            <button type="button" data-salin="{{ $aduan->kode_tiket }}" class="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-[#1e3f7f] hover:bg-[#f0f5ff] transition">
-                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
-                <span data-salin-label>Salin</span>
-            </button>
-            <span>· Diajukan {{ $aduan->created_at->format('d M Y, H.i') }}</span>
-        </p>
-    </div>
-    @include('partials.status-badge', ['item' => $aduan])
-</div>
+<a href="{{ route('admin.aduan.index') }}" class="inline-flex items-center gap-1 text-sm font-semibold text-[#1f6fe5] mb-3">← Kembali ke Data Aduan</a>
+<h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0f2d5c]">{{ Str::limit($aduan->deskripsi, 50) }}</h1>
+<p class="text-slate-500 text-sm mb-6">Diajukan oleh {{ $aduan->user->name }} · {{ $aduan->user->kelas }} · {{ $aduan->created_at->format('d M Y, H.i') }}</p>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-6">
         <div class="{{ $card }} p-5">
-            <h2 class="font-semibold mb-5">Progres Penanganan</h2>
-
-            @php
-                $ditolak = $aduan->status === 'rejected';
-                $selesai = $aduan->status === 'selesai';
-                $verif   = (bool) $aduan->diverifikasi_at;
-                $fmt     = 'd M Y · H.i';
-                // state: done | current | todo | rejected
-                $steps = [
-                    ['Aduan Diajukan', $aduan->created_at->format($fmt), 'done'],
-                    [
-                        $ditolak ? 'Aduan Ditolak' : 'Diverifikasi Admin',
-                        $ditolak ? ($aduan->diverifikasi_at?->format($fmt) ?? $aduan->updated_at->format($fmt)) : ($aduan->diverifikasi_at?->format($fmt) ?? 'Menunggu verifikasi'),
-                        $ditolak ? 'rejected' : ($verif ? 'done' : 'current'),
-                    ],
-                    [
-                        $aduan->teknisi && $verif && ! $ditolak ? 'Teknisi Menangani' : 'Penugasan Teknisi',
-                        $ditolak ? 'Tidak dilanjutkan' : ($verif && $aduan->teknisi ? $aduan->teknisi->nama . ' · ' . \App\Models\Teknisi::singkat($aduan->teknisi->jurusan) : 'Ditentukan setelah verifikasi'),
-                        $ditolak ? 'todo' : ($verif ? 'done' : 'todo'),
-                    ],
-                    [
-                        'Perbaikan Selesai',
-                        $ditolak ? 'Tidak dilanjutkan' : ($aduan->selesai_at?->format($fmt) ?? 'Menunggu tindak lanjut'),
-                        $ditolak ? 'todo' : ($selesai ? 'done' : ($verif ? 'current' : 'todo')),
-                    ],
-                ];
-            @endphp
-
-            <ol class="text-sm">
-                @foreach($steps as $i => [$judul, $waktu, $state])
-                    @php $terakhir = $loop->last; @endphp
-                    <li class="relative flex gap-4 {{ $terakhir ? '' : 'pb-6' }}">
-                        @unless($terakhir)
-                            <span class="absolute left-[13px] top-7 bottom-0 w-0.5 rounded-full {{ $state === 'done' ? 'bg-[#16305c]' : 'bg-slate-200' }}"></span>
-                        @endunless
-
-                        <span class="relative z-10 shrink-0 w-7 h-7 rounded-full flex items-center justify-center
-                            {{ match($state) {
-                                'done'     => 'bg-[#16305c] text-white',
-                                'current'  => 'bg-white border-2 border-[#2f7cf6]',
-                                'rejected' => 'bg-[#e5484d] text-white',
-                                default    => 'bg-slate-100 border border-slate-200',
-                            } }}">
-                            @if($state === 'done')
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
-                            @elseif($state === 'rejected')
-                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-                            @elseif($state === 'current')
-                                <span class="absolute inline-flex h-full w-full rounded-full bg-[#2f7cf6] opacity-30 animate-ping"></span>
-                                <span class="relative w-2.5 h-2.5 rounded-full bg-[#2f7cf6]"></span>
-                            @endif
-                        </span>
-
-                        <div class="pt-0.5">
-                            <p class="font-semibold {{ $state === 'todo' ? 'text-slate-400' : ($state === 'rejected' ? 'text-[#c2352d]' : '') }}">{{ $judul }}</p>
-                            <p class="text-slate-400 mt-0.5">{{ $waktu }}</p>
-                        </div>
-                    </li>
-                @endforeach
-            </ol>
-        </div>
-
-        {{-- Detail Kerusakan & Hasil Perbaikan: berdampingan di layar lebar, atas-bawah di HP --}}
-        @php $adaHasil = $aduan->status === 'selesai' && (filled($aduan->catatan_perbaikan) || !empty($aduan->foto_selesai)); @endphp
-        <div class="grid grid-cols-1 {{ $adaHasil ? 'lg:grid-cols-2' : '' }} gap-6 items-start">
-        <div class="{{ $card }} p-5">
             <h2 class="font-semibold mb-4">Detail Kerusakan</h2>
-            <div class="grid grid-cols-1 min-[420px]:grid-cols-2 {{ $adaHasil ? 'lg:grid-cols-1 2xl:grid-cols-2' : '' }} gap-4 mb-4 text-sm [&>div]:min-w-0 [&_p]:break-words">
+            <div class="grid grid-cols-1 min-[420px]:grid-cols-2 gap-4 mb-4 text-sm [&>div]:min-w-0 [&_p]:break-words">
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Kategori</p><p class="font-medium">{{ $aduan->kategori->icon }} {{ $aduan->kategori->nama }}</p></div>
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Lokasi</p><p class="font-medium">{{ $aduan->lokasi->nama_lengkap }}</p></div>
-                <div><p class="text-slate-400 text-xs uppercase mb-1">Teknisi</p><p class="font-medium">{{ $aduan->teknisi?->nama ?? 'Ditentukan petugas' }}@if($aduan->teknisi) <span class="text-xs text-slate-400 font-normal">· {{ \App\Models\Teknisi::singkat($aduan->teknisi->jurusan) }}</span>@endif</p></div>
+                <div><p class="text-slate-400 text-xs uppercase mb-1">Teknisi</p><p class="font-medium">{{ $aduan->teknisi?->nama ?? 'Belum ditunjuk' }}</p></div>
+                <div><p class="text-slate-400 text-xs uppercase mb-1">Tgl Kejadian</p><p class="font-medium">{{ $aduan->tanggal_kejadian->format('d M Y, H.i') }}</p></div>
+                <div><p class="text-slate-400 text-xs uppercase mb-1">Status Saat Ini</p>@include('partials.admin-status-badge', ['item' => $aduan])</div>
             </div>
             <p class="text-sm text-slate-600 mb-4">{{ $aduan->deskripsi }}</p>
-
             @if(!empty($aduan->foto))
-                <div class="grid grid-cols-2 sm:grid-cols-3 {{ $adaHasil ? 'lg:grid-cols-2 2xl:grid-cols-3' : '' }} gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     @foreach($aduan->foto as $foto)
                         <img src="{{ asset('storage/' . $foto) }}" class="rounded-lg h-28 w-full object-cover">
                     @endforeach
                 </div>
             @endif
+        </div>
 
-            @if($aduan->catatan_admin)
-                <div class="mt-4 rounded-lg bg-slate-50 border p-3 text-sm">
-                    <p class="text-xs uppercase text-slate-400 mb-1">Catatan Admin</p>
-                    {{ $aduan->catatan_admin }}
-                </div>
+        <div class="{{ $card }} p-5">
+            <h2 class="font-semibold mb-3">Riwayat Status</h2>
+            <p class="text-sm"><span class="text-amber-500">●</span> Menunggu verifikasi — {{ $aduan->created_at->format('d M Y, H.i') }}</p>
+            @if($aduan->diverifikasi_at)
+                <p class="text-sm mt-2"><span class="text-green-500">●</span> {{ $aduan->statusLabel() }} — {{ $aduan->diverifikasi_at->format('d M Y, H.i') }}</p>
+            @endif
+            @if($aduan->selesai_at)
+                <p class="text-sm mt-2"><span class="text-blue-500">●</span> Selesai diperbaiki — {{ $aduan->selesai_at->format('d M Y, H.i') }}</p>
             @endif
         </div>
 
@@ -117,7 +45,7 @@
                     <p class="text-sm text-slate-600 mb-3">{{ $aduan->catatan_perbaikan }}</p>
                 @endif
                 @if(!empty($aduan->foto_selesai))
-                    <div class="grid grid-cols-2 sm:grid-cols-3 {{ $adaHasil ? 'lg:grid-cols-2 2xl:grid-cols-3' : '' }} gap-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         @foreach($aduan->foto_selesai as $foto)
                             <img src="{{ asset('storage/' . $foto) }}" alt="Foto hasil perbaikan" class="rounded-lg h-28 w-full object-cover">
                         @endforeach
@@ -125,10 +53,91 @@
                 @endif
             </div>
         @endif
-        </div>
     </div>
 
     <div class="space-y-4">
+        {{-- Penugasan teknisi --}}
+        <div class="{{ $card }} p-5">
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <h2 class="font-semibold">Penugasan Teknisi</h2>
+                <span class="rounded-full bg-[#e6effb] text-[#1d4f9c] text-xs font-semibold px-2.5 py-1">{{ \App\Models\Teknisi::singkat($aduan->lokasi->jurusan) }}</span>
+            </div>
+
+            @if(in_array($aduan->status, ['pending', 'approved']))
+                @if($calonTeknisi->isEmpty())
+                    <p class="text-sm text-amber-600">Belum ada teknisi aktif. Aktifkan teknisi di Master Data.</p>
+                @else
+                    <form method="POST" action="{{ route('admin.aduan.teknisi', $aduan) }}">
+                        @csrf
+                        <div class="space-y-2">
+                            @foreach($calonTeknisi as $t)
+                                <label class="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2.5 cursor-pointer transition hover:bg-slate-50 has-[:checked]:border-[#1f6fe5] has-[:checked]:bg-[#e6effb]">
+                                    <input type="radio" name="teknisi_id" value="{{ $t->id }}" class="accent-[#1f6fe5]" required
+                                           @checked($aduan->teknisi_id ? $aduan->teknisi_id == $t->id : $loop->first)>
+                                    <span class="flex-1 min-w-0">
+                                        <span class="block text-sm font-semibold text-[#0f2d5c]">{{ $t->nama }}</span>
+                                        <span class="block text-xs text-slate-400">{{ \App\Models\Teknisi::singkat($t->jurusan) }}@if(!$aduan->teknisi_id && $loop->first) · disarankan (beban teringan)@endif</span>
+                                    </span>
+                                    <span class="text-xs text-slate-500 whitespace-nowrap">{{ $t->aktif_count }} aktif</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        @if($fallbackTeknisi)
+                            <p class="text-xs text-amber-600 mt-2">Tidak ada teknisi aktif di jurusan lokasi ini, jadi semua teknisi aktif ditampilkan.</p>
+                        @elseif(blank($aduan->lokasi->jurusan))
+                            <p class="text-xs text-slate-400 mt-2">Lokasi umum: pilih teknisi mana pun.</p>
+                        @else
+                            <p class="text-xs text-slate-400 mt-2">Hanya teknisi jurusan lokasi ini yang ditampilkan.</p>
+                        @endif
+                        <button class="mt-3 w-full rounded-xl bg-[#1f6fe5] hover:bg-[#1a5ec4] text-white py-2.5 text-sm font-bold transition">
+                            {{ $aduan->teknisi_id ? 'Ganti teknisi' : 'Simpan teknisi' }}
+                        </button>
+                    </form>
+                @endif
+            @else
+                <p class="text-sm">{{ $aduan->teknisi?->nama ?? 'Tidak ada teknisi yang ditugaskan' }}</p>
+            @endif
+        </div>
+
+        @if($aduan->status === 'pending')
+            <div class="{{ $card }} p-5">
+                <h2 class="font-semibold mb-3">Tindak Lanjut</h2>
+                @if(!$aduan->teknisi_id)
+                    <p class="text-xs text-amber-600 mb-2">Tugaskan teknisi terlebih dahulu sebelum menyetujui.</p>
+                @endif
+                <form method="POST" action="{{ route('admin.aduan.setujui', $aduan) }}" class="mb-3">
+                    @csrf
+                    <textarea name="catatan_admin" rows="2" class="w-full border rounded-lg px-3 py-2 text-sm mb-2" placeholder="Contoh: Teknisi akan mengecek lokasi besok pagi."></textarea>
+                    <button class="w-full bg-[#22b36b] text-white rounded-xl py-2.5 font-bold hover:bg-[#1c9a5c]">✓ Setujui</button>
+                </form>
+                <form method="POST" action="{{ route('admin.aduan.tolak', $aduan) }}" onsubmit="return confirm('Tolak aduan ini?')">
+                    @csrf
+                    <input type="hidden" name="catatan_admin" value="Aduan tidak dapat diverifikasi.">
+                    <button class="w-full border border-red-200 text-red-600 rounded-xl py-2.5 font-bold hover:bg-red-50">✕ Tolak</button>
+                </form>
+            </div>
+        @elseif($aduan->status === 'approved')
+            <div class="{{ $card }} p-5">
+                <h2 class="font-semibold mb-3">Tindak Lanjut</h2>
+                <form method="POST" action="{{ route('admin.aduan.selesai', $aduan) }}" enctype="multipart/form-data">
+                    @csrf
+                    <textarea name="catatan_perbaikan" rows="2" maxlength="500" class="w-full border rounded-lg px-3 py-2 text-sm mb-2" placeholder="Catatan perbaikan (opsional). Contoh: Kran diganti baru."></textarea>
+                    <label class="block text-xs text-slate-500 mb-1">Foto hasil perbaikan (opsional, maks. 3 foto, 2 MB)</label>
+                    <input type="file" name="foto_selesai[]" accept="image/*" multiple class="block w-full text-sm mb-3 file:mr-3 file:rounded-lg file:border-0 file:bg-[#e6effb] file:text-[#1d4f9c] file:font-semibold file:px-3 file:py-1.5">
+                    @error('foto_selesai.*')<p class="text-xs text-red-600 mb-2">{{ $message }}</p>@enderror
+                    @error('foto_selesai')<p class="text-xs text-red-600 mb-2">{{ $message }}</p>@enderror
+                    <button class="w-full bg-[#0f3a9a] text-white rounded-xl py-2.5 font-bold hover:bg-[#0b2f7e]">Tandai Selesai Diperbaiki</button>
+                </form>
+            </div>
+        @endif
+
+        @if($aduan->catatan_admin)
+            <div class="{{ $card }} p-5 text-sm">
+                <p class="text-xs uppercase text-slate-400 mb-1">Catatan Admin</p>
+                {{ $aduan->catatan_admin }}
+            </div>
+        @endif
+
         <div class="{{ $card }} p-5">
             <h2 class="font-semibold mb-3">Data Pelapor</h2>
             <div class="flex items-center gap-3 mb-3">
@@ -139,33 +148,16 @@
             </div>
             <div class="text-sm space-y-1 border-t pt-3">
                 <p class="flex justify-between gap-3"><span class="text-slate-400">NISN</span><span class="font-medium">{{ $aduan->user->nisn }}</span></p>
+                <p class="flex justify-between gap-3"><span class="text-slate-400">Email</span><span class="font-medium break-all text-right">{{ $aduan->user->email }}</span></p>
                 <p class="flex justify-between gap-3"><span class="text-slate-400">No. HP</span><span class="font-medium">{{ $aduan->user->no_hp }}</span></p>
+                <p class="flex justify-between gap-3"><span class="text-slate-400">Total Aduan Diajukan</span><span class="font-medium">{{ $totalAduanPelapor }} Tiket</span></p>
             </div>
         </div>
 
-        @if($aduan->status === 'pending')
-            <form method="POST" action="{{ route('siswa.aduan.batalkan', $aduan) }}" onsubmit="return confirm('Batalkan pengajuan ini?')">
-                @csrf @method('DELETE')
-                <button class="w-full bg-white border border-red-200 text-red-600 rounded-lg py-2.5 font-medium hover:bg-red-50">
-                    Batalkan Pengajuan
-                </button>
-            </form>
-        @endif
+        <form method="POST" action="{{ route('admin.aduan.destroy', $aduan) }}" onsubmit="return confirm('Hapus tiket aduan ini secara permanen?')">
+            @csrf @method('DELETE')
+            <button class="w-full text-red-600 text-sm py-2">🗑 Hapus Tiket Aduan Ini</button>
+        </form>
     </div>
 </div>
-<script>
-    // Tombol "Salin" nomor tiket
-    document.querySelectorAll('[data-salin]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var teks = btn.dataset.salin, label = btn.querySelector('[data-salin-label]');
-            function selesai() { label.textContent = 'Tersalin!'; setTimeout(function () { label.textContent = 'Salin'; }, 1600); }
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(teks).then(selesai);
-            } else {
-                var t = document.createElement('textarea'); t.value = teks; document.body.appendChild(t);
-                t.select(); document.execCommand('copy'); t.remove(); selesai();
-            }
-        });
-    });
-</script>
 @endsection

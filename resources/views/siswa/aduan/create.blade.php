@@ -10,7 +10,7 @@
 
 {{-- Header --}}
 <a href="{{ route('siswa.dashboard') }}" aria-label="Kembali ke beranda" title="Kembali"
-   class="mb-3 inline-flex w-10 h-10 items-center justify-center rounded-xl bg-[#0f4a9a] text-white hover:bg-[#0b3c7f] transition">
+   class="mb-3 inline-flex w-10 h-10 items-center justify-center rounded-2xl text-white hover:scale-105 transition shadow-md shadow-blue-700/30" style="background:linear-gradient(135deg,#2f7cf6,#4f46e5)">
     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
 </a>
 <h1 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#0f2d5c]" data-i18n>Ajukan Aduan Baru</h1>
@@ -26,7 +26,7 @@
     @csrf
 
     {{-- Detail kerusakan --}}
-    <div class="{{ $card }} p-5 sm:p-6 lg:col-span-2 space-y-5">
+    <div class="{{ $card }} !rounded-3xl p-5 sm:p-6 lg:col-span-2 space-y-5">
         <h2 class="font-bold text-[#0f2d5c]" data-i18n>Detail Kerusakan</h2>
 
         <div>
@@ -65,6 +65,44 @@
             </div>
         </div>
 
+        {{-- Peringatan aduan ganda: ruangan + kategori sama yang belum selesai --}}
+        <div id="ganda-box" class="hidden rounded-2xl border border-[#ffd98a] p-4" style="background: linear-gradient(120deg,#fff6df,#fffbf1)" role="alert">
+            <div class="flex items-start gap-3">
+                <span class="w-9 h-9 shrink-0 rounded-xl bg-[#ffe3a3] flex items-center justify-center text-lg">⚠️</span>
+                <div class="min-w-0 flex-1">
+                    <p class="font-extrabold text-sm text-[#7a4b00]">Sepertinya kerusakan ini sudah dilaporkan</p>
+                    <p class="text-xs text-[#a56a10] mt-0.5">Ruangan dan kategori yang sama masih punya aduan yang belum selesai. Cek dulu supaya tidak dobel. Kamu tetap boleh mengirim kalau ini kerusakan yang berbeda.</p>
+                    <ul id="ganda-list" class="mt-2.5 space-y-1.5"></ul>
+                </div>
+            </div>
+        </div>
+
+        {{-- Prioritas / urgensi --}}
+        <div>
+            <label class="block text-sm font-bold text-[#0f2d5c] mb-2.5">Tingkat Prioritas</label>
+            @php
+                $prioritasOpsi = [
+                    'rendah'   => ['Rendah',   'Mengganggu, tapi masih bisa dipakai', '🟢', 'has-[:checked]:border-[#3a8dde] has-[:checked]:bg-[#eaf3ff]'],
+                    'sedang'   => ['Sedang',   'Perlu diperbaiki dalam waktu dekat',  '🟡', 'has-[:checked]:border-[#f5a524] has-[:checked]:bg-[#fff6e0]'],
+                    'mendesak' => ['Mendesak', 'Berbahaya, contoh: korsleting, atap bocor', '🔴', 'has-[:checked]:border-[#ef4b43] has-[:checked]:bg-[#fff0ee]'],
+                ];
+                $prioritasLama = old('prioritas', 'sedang');
+            @endphp
+            <div class="grid sm:grid-cols-3 gap-2.5">
+                @foreach($prioritasOpsi as $nilai => [$namaP, $ketP, $ikonP, $kelasP])
+                    <label class="relative flex items-start gap-2.5 rounded-2xl border-2 border-slate-200 bg-white px-3.5 py-3 cursor-pointer transition hover:border-[#9db8e0] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#4a86e8] {{ $kelasP }}">
+                        <input type="radio" name="prioritas" value="{{ $nilai }}" class="sr-only" {{ $prioritasLama === $nilai ? 'checked' : '' }}>
+                        <span class="text-lg leading-none mt-0.5">{{ $ikonP }}</span>
+                        <span class="min-w-0">
+                            <span class="block text-sm font-extrabold text-[#0f2d5c] leading-tight">{{ $namaP }}</span>
+                            <span class="block text-[11px] text-[#5d7aa8] mt-0.5 leading-snug">{{ $ketP }}</span>
+                        </span>
+                    </label>
+                @endforeach
+            </div>
+            <p id="prioritas-info" class="hidden mt-2 text-xs font-semibold text-[#c2352d]">Aduan mendesak akan tampil paling atas di dashboard petugas dengan lencana merah. Pakai hanya untuk bahaya nyata ya.</p>
+        </div>
+
         {{-- Teknisi: otomatis sesuai kategori & jurusan lokasi, tidak bisa dipilih siswa --}}
         <div>
             <div class="flex items-center justify-between mb-2">
@@ -94,7 +132,7 @@
 
     {{-- Kolom kanan --}}
     <div class="space-y-5 sm:space-y-6">
-        <div class="{{ $card }} p-5 sm:p-6">
+        <div class="{{ $card }} !rounded-3xl p-5 sm:p-6">
             <h2 class="font-bold text-[#0f2d5c] mb-4" data-i18n>Foto Bukti</h2>
 
             <div id="foto-drop" class="relative rounded-xl border-2 border-dashed border-[#c9d8ee] bg-[#fafcff] hover:border-[#4a86e8] transition">
@@ -107,7 +145,7 @@
             <div id="foto-preview" class="grid grid-cols-3 gap-2 mt-3"></div>
         </div>
 
-        <div class="{{ $card }} p-5 sm:p-6">
+        <div class="{{ $card }} !rounded-3xl p-5 sm:p-6">
             <h2 class="font-bold text-[#0f2d5c] mb-4" data-i18n>Data Pelapor</h2>
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 shrink-0 rounded-full bg-[#b9d0ee] text-[#0f2d5c] flex items-center justify-center font-bold">{{ $initials }}</div>
@@ -119,7 +157,7 @@
             <p class="text-xs text-[#5d7aa8] mt-3" data-i18n>Terisi otomatis dari akun kamu.</p>
         </div>
 
-        <button id="btn-kirim" class="w-full flex items-center justify-center gap-2 rounded-xl bg-[#0f3a7a] hover:bg-[#0b2f66] active:scale-[.99] transition text-white font-bold py-3.5 shadow-lg shadow-blue-900/20 disabled:opacity-70 disabled:cursor-wait">
+        <button id="btn-kirim" class="b-shine w-full flex items-center justify-center gap-2 rounded-2xl hover:opacity-95 active:scale-[.99] transition text-white font-bold py-3.5 shadow-lg shadow-blue-700/30 disabled:opacity-70 disabled:cursor-wait" style="background:linear-gradient(135deg,#2f7cf6,#4f46e5)">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M2.5 11.3 21 3l-4.2 18-5.3-5.6-3.4 3v-5.3zM9 12.5l7.4-5.3-9.2 6.7z" fill-rule="evenodd"/></svg>
             <span id="btn-kirim-teks">Kirim Aduan</span>
         </button>
@@ -216,6 +254,64 @@
         ['dragleave', 'drop', 'change'].forEach(function (e) {
             input.addEventListener(e, function () { drop.classList.remove('border-[#4a86e8]', 'bg-[#eef5ff]'); });
         });
+    })();
+
+
+    // Prioritas "Mendesak": tampilkan catatan singkat
+    (function () {
+        var info = document.getElementById('prioritas-info');
+        var radios = document.querySelectorAll('input[name="prioritas"]');
+        function tampil() {
+            var v = document.querySelector('input[name="prioritas"]:checked');
+            info.classList.toggle('hidden', !(v && v.value === 'mendesak'));
+        }
+        radios.forEach(function (r) { r.addEventListener('change', tampil); });
+        tampil();
+    })();
+
+    // Deteksi aduan ganda: ruangan + kategori yang sama dan belum selesai
+    (function () {
+        var box = document.getElementById('ganda-box');
+        var list = document.getElementById('ganda-list');
+        var lokasi = document.getElementById('lokasi_id');
+        var url = '{{ route('siswa.aduan.cek-ganda') }}';
+        var timer = null, seq = 0;
+
+        function kategori() {
+            var k = document.querySelector('input[name="kategori_kerusakan_id"]:checked');
+            return k ? k.value : '';
+        }
+        function tampil(data) {
+            list.textContent = '';
+            if (!data || !data.jumlah) { box.classList.add('hidden'); return; }
+            data.aduan.forEach(function (a) {
+                var li = document.createElement('li');
+                li.className = 'flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-xl bg-white/80 border border-[#ffe2a8] px-3 py-1.5 text-xs text-[#7a4b00]';
+                var kode = document.createElement(a.url ? 'a' : 'span');
+                kode.className = 'font-extrabold' + (a.url ? ' underline' : '');
+                kode.textContent = '#' + a.kode;
+                if (a.url) kode.href = a.url;
+                var ket = document.createElement('span');
+                ket.textContent = '· ' + a.status + ' · ' + a.tanggal + (a.milikmu ? ' · aduanmu sendiri' : ' · dilaporkan siswa lain');
+                li.appendChild(kode); li.appendChild(ket); list.appendChild(li);
+            });
+            box.classList.remove('hidden');
+        }
+        function cek() {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                if (!lokasi.value || !kategori()) { tampil(null); return; }
+                var id = ++seq;
+                fetch(url + '?lokasi_id=' + encodeURIComponent(lokasi.value) + '&kategori_kerusakan_id=' + encodeURIComponent(kategori()), {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                }).then(function (r) { return r.ok ? r.json() : null; })
+                  .then(function (d) { if (id === seq) tampil(d); })
+                  .catch(function () {});
+            }, 250);
+        }
+        lokasi.addEventListener('change', cek);
+        document.querySelectorAll('input[name="kategori_kerusakan_id"]').forEach(function (r) { r.addEventListener('change', cek); });
+        cek();
     })();
 
     // Penghitung karakter deskripsi
