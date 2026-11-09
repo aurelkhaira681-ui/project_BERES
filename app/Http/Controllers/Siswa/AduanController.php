@@ -8,6 +8,9 @@ use App\Models\KategoriKerusakan;
 use App\Models\Lokasi;
 use App\Models\Teknisi;
 use Barryvdh\DomPDF\Facade\Pdf;
+use chillerlan\QRCode\Output\QROutputInterface;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -140,10 +143,28 @@ class AduanController extends Controller
         $pdf = Pdf::loadView('siswa.aduan.bukti-pdf', [
             'aduan' => $aduan,
             'foto' => $foto,
+            'qr' => $this->qrTiket(route('siswa.aduan.show', $aduan)),
             'dicetak' => now()->timezone('Asia/Jakarta'),
         ])->setPaper('a4');
 
         return $pdf->download('Bukti-Laporan-' . $aduan->kode_tiket . '.pdf');
+    }
+
+    // QR code (data URI PNG) berisi tautan ke halaman status tiket. Null jika gagal dibuat -> PDF tetap jadi.
+    private function qrTiket(string $url): ?string
+    {
+        try {
+            return (new QRCode(new QROptions([
+                'outputType' => QROutputInterface::GDIMAGE_PNG,
+                'eccLevel' => 'M',
+                'scale' => 6,
+                'outputBase64' => true,
+            ])))->render($url);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return null;
+        }
     }
 
     // Halaman detail tiket + progres penanganan

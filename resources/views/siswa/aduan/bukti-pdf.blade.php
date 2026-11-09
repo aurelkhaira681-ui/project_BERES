@@ -16,6 +16,8 @@
         .tiket-box table { width: 100%; }
         .tiket-label { font-size: 9px; text-transform: uppercase; color: #64748b; }
         .tiket-kode { font-size: 20px; font-weight: bold; color: #16305c; }
+        .qr { width: 78px; height: 78px; }
+        .qr-ket { font-size: 8px; color: #64748b; text-align: center; margin-top: 2px; }
         .status { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 10px; font-weight: bold; background: #fff6e0; color: #b36f00; border: 1px solid #f7d98e; }
         .status.approved { background: #e6f1ff; color: #1a63c4; border-color: #b9d6fb; }
         .status.selesai { background: #e3f7ec; color: #127a4b; border-color: #a9e2c4; }
@@ -52,7 +54,7 @@
                     <div class="tiket-label">Nomor Tiket</div>
                     <div class="tiket-kode">{{ $aduan->kode_tiket }}</div>
                 </td>
-                <td style="text-align: right;">
+                <td style="text-align: right; vertical-align: middle;">
                     <div class="tiket-label">Status Saat Dicetak</div>
                     <span class="status {{ $aduan->status }}">{{ match($aduan->status) {
                         'pending' => 'Menunggu',
@@ -62,6 +64,12 @@
                         default => ucfirst($aduan->status),
                     } }}</span>
                 </td>
+                @if(!empty($qr))
+                    <td style="width: 90px; text-align: center; vertical-align: middle;">
+                        <img class="qr" src="{{ $qr }}" alt="QR tiket">
+                        <div class="qr-ket">Pindai untuk<br>cek status</div>
+                    </td>
+                @endif
             </tr>
         </table>
     </div>

@@ -205,6 +205,69 @@
     </div>
 </div>
 
+{{-- Analitik: kategori & ruangan terbanyak + peta panas denah --}}
+@php
+    $maksKategori = max(1, (int) $kategoriTeratas->max('total'));
+    $maksRuangan = max(1, (int) $ruanganTeratas->max('total'));
+@endphp
+<div class="grid grid-cols-1 xl:grid-cols-[1fr_1.1fr] gap-4 sm:gap-5 mb-5">
+    <div class="space-y-4 sm:space-y-5">
+        {{-- Rata-rata waktu penyelesaian --}}
+        <div class="{{ $card }} p-5 flex items-center gap-4">
+            <span class="w-12 h-12 shrink-0 rounded-xl bg-[#22b36b] text-white flex items-center justify-center">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>
+            </span>
+            <div>
+                <p class="text-xs text-[#5d7aa8]">Rata-rata Waktu Penyelesaian</p>
+                <p class="text-2xl font-extrabold text-[#0f2d5c] leading-tight">{{ $rataSelesai ?? '-' }}</p>
+                <p class="text-xs text-slate-400">{{ $rataSelesai ? 'Dihitung dari diajukan sampai selesai' : 'Belum ada aduan yang selesai' }}</p>
+            </div>
+        </div>
+
+        {{-- Kategori kerusakan terbanyak --}}
+        <div class="{{ $card }} p-5">
+            <h2 class="font-bold text-[#0f2d5c] mb-4">Kategori Kerusakan Terbanyak</h2>
+            <div class="space-y-3.5">
+                @forelse($kategoriTeratas as $k)
+                    <div>
+                        <div class="flex items-center justify-between text-sm mb-1.5">
+                            <span class="font-semibold text-[#0f2d5c] truncate">{{ $k->kategori?->nama ?? 'Tanpa kategori' }}</span>
+                            <span class="font-bold text-[#0f2d5c]">{{ $k->total }}</span>
+                        </div>
+                        <div class="h-2 rounded-full bg-[#e6effb] overflow-hidden">
+                            <div class="h-2 rounded-full bg-[#2f7cf6]" style="width: {{ round($k->total / $maksKategori * 100) }}%"></div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-sm text-slate-400">Belum ada data.</p>
+                @endforelse
+            </div>
+        </div>
+
+        {{-- Ruangan paling sering rusak --}}
+        <div class="{{ $card }} p-5">
+            <h2 class="font-bold text-[#0f2d5c] mb-4">Ruangan Paling Sering Dilaporkan</h2>
+            <div class="space-y-3.5">
+                @forelse($ruanganTeratas as $i => $r)
+                    <div>
+                        <div class="flex items-center justify-between text-sm mb-1.5">
+                            <span class="font-semibold text-[#0f2d5c] truncate"><span class="text-slate-400 font-normal mr-1">{{ $i + 1 }}.</span>{{ $r->lokasi?->nama_ruangan ?? 'Lokasi dihapus' }}</span>
+                            <span class="font-bold text-[#0f2d5c]">{{ $r->total }}</span>
+                        </div>
+                        <div class="h-2 rounded-full bg-[#fdeceb] overflow-hidden">
+                            <div class="h-2 rounded-full {{ $i === 0 ? 'bg-[#ef4b43]' : 'bg-[#f5a524]' }}" style="width: {{ round($r->total / $maksRuangan * 100) }}%"></div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-sm text-slate-400">Belum ada data.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
+    @include('partials.denah-panas')
+</div>
+
 {{-- Banner --}}
 <div class="rounded-2xl bg-gradient-to-r from-[#e3eeff] to-[#f1f6ff] border border-[#d6e6ff] px-5 py-4 flex flex-wrap items-center justify-between gap-3">
     <p class="flex items-center gap-3 text-sm font-semibold text-[#0f2d5c]">
