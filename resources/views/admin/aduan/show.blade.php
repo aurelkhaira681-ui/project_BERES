@@ -6,7 +6,7 @@
 <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0f2d5c]">{{ Str::limit($aduan->deskripsi, 50) }}</h1>
 <p class="text-slate-500 text-sm mb-6">Diajukan oleh {{ $aduan->user->name }} · {{ $aduan->user->kelas }} · {{ $aduan->created_at->format('d M Y, H.i') }}</p>
 
-<div class="grid lg:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-6">
         <div class="{{ $card }} p-5">
             <h2 class="font-semibold mb-4">Detail Kerusakan</h2>

@@ -17,7 +17,7 @@
     @include('partials.status-badge', ['item' => $aduan])
 </div>
 
-<div class="grid lg:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-6">
         <div class="{{ $card }} p-5">
             <h2 class="font-semibold mb-5">Progres Penanganan</h2>

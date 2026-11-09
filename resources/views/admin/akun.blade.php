@@ -70,7 +70,7 @@
     </div>
 </form>
 
-<div class="grid lg:grid-cols-3 gap-5 sm:gap-6 items-start">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 items-start">
 
     {{-- Informasi profil --}}
     <div class="{{ $card }} p-5 sm:p-6 lg:col-span-2">

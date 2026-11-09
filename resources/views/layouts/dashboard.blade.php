@@ -13,6 +13,10 @@
         body { font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; }
         img, svg, video { max-width: 100%; }
 
+        /* Anak grid boleh menyusut. Tanpa ini, teks yang tidak dipotong (truncate/nowrap) melebarkan kolom
+           grid sampai melewati layar HP, sehingga kartu terpotong di sisi kanan. */
+        .grid > * { min-width: 0; }
+
         /* Tabel -> kartu di layar HP (tambahkan class "tbl-stack" pada <table>) */
         @media (max-width: 767px) {
             table.tbl-stack { min-width: 0 !important; width: 100% !important; }

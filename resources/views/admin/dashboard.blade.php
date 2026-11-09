@@ -79,7 +79,7 @@
         [route('admin.aduan.export'), 'Ekspor Data', 'Unduh rekap aduan (CSV)', 'bg-[#22b36b]', '<path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>', 0],
     ];
 @endphp
-<div class="grid sm:grid-cols-3 gap-3 sm:gap-4 mb-5">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-5">
     @foreach($aksi as [$urlAksi, $judulAksi, $ketAksi, $warnaAksi, $ikonAksi, $badgeAksi])
         <a href="{{ $urlAksi }}" class="{{ $card }} b-lift group flex items-center gap-3 px-4 py-3.5">
             <span class="w-10 h-10 shrink-0 rounded-xl {{ $warnaAksi }} text-white flex items-center justify-center transition duration-300 group-hover:rotate-6 group-hover:scale-110">
@@ -101,7 +101,7 @@
 </div>
 
 {{-- Grafik + donut + aktivitas --}}
-<div class="grid xl:grid-cols-[1.5fr_1fr_1fr] gap-4 sm:gap-5 mb-5">
+<div class="grid grid-cols-1 xl:grid-cols-[1.5fr_1fr_1fr] gap-4 sm:gap-5 mb-5">
 
     {{-- Grafik pengaduan --}}
     <div class="{{ $card }} p-5">
