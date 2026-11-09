@@ -85,6 +85,25 @@
         @endif
     </div>
 
+    {{-- TOAST (pesan sukses / error, hilang sendiri) --}}
+    @if(session('success') || session('error'))
+        @php $toastOk = (bool) session('success'); @endphp
+        <div id="toast" role="status" aria-live="polite"
+             class="fixed z-[60] top-16 md:top-5 inset-x-4 sm:inset-x-auto sm:right-5 sm:w-96 flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm shadow-[0_12px_40px_rgba(20,50,105,0.18)] translate-y-[-12px] opacity-0 transition duration-300 {{ $toastOk ? 'bg-white border-[#a9e2c4]' : 'bg-white border-[#f5bcb8]' }}">
+            <span class="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white {{ $toastOk ? 'bg-[#22a06b]' : 'bg-[#e5484d]' }}">
+                @if($toastOk)
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+                @else
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                @endif
+            </span>
+            <p class="flex-1 pt-0.5 font-medium text-[#0f2d5c]">{{ session('success') ?? session('error') }}</p>
+            <button type="button" id="toast-tutup" aria-label="Tutup" class="shrink-0 -mr-1 p-1 rounded-lg text-slate-400 hover:text-slate-600">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+        </div>
+    @endif
+
     <div id="sidebar-overlay" class="hidden md:hidden fixed inset-0 z-40 bg-black/50"></div>
 
     {{-- SIDEBAR --}}
@@ -211,21 +230,54 @@
 
     {{-- KONTEN --}}
     <div class="flex-1 min-w-0 flex flex-col pt-14 md:pt-0">
-        <main class="flex-1 p-4 sm:p-6 lg:p-8">
-            @if(session('success'))
-                <div class="mb-5 rounded-xl bg-green-50 text-green-700 border border-green-200 px-4 py-3 text-sm">
-                    {{ session('success') }}
-                </div>
-            @endif
-            @if(session('error'))
-                <div class="mb-5 rounded-xl bg-red-50 text-red-700 border border-red-200 px-4 py-3 text-sm">
-                    {{ session('error') }}
-                </div>
-            @endif
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 pb-24 sm:pb-24 md:pb-6 lg:pb-8">
             @yield('content')
         </main>
     </div>
 
+    {{-- NAVIGASI BAWAH (HP) --}}
+    @php
+        // siswa: tombol "Ajukan Aduan" jadi tombol utama di tengah
+        $bnItems = $u->isSiswa() ? [$nav[0], $nav[2], 'fab', $nav[3]] : $nav;
+    @endphp
+    <nav aria-label="Navigasi utama" class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(20,50,105,0.08)] pb-[env(safe-area-inset-bottom)]">
+        <div class="grid grid-cols-4 items-end px-1">
+            @foreach($bnItems as $item)
+                @if($item === 'fab')
+                    <a href="{{ route('siswa.aduan.create') }}" class="flex flex-col items-center gap-0.5 pb-1.5 text-[11px] font-bold text-[#1f6fe5]">
+                        <span class="-mt-6 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-[0_8px_20px_rgba(31,111,229,.45)] ring-4 ring-white" style="background: linear-gradient(135deg, #2f7cf6, #16408a)">
+                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        </span>
+                        <span data-i18n>Ajukan</span>
+                    </a>
+                @else
+                    @php [$bnRoute, $bnLabel, $bnIcon, $bnActive] = $item; @endphp
+                    <a href="{{ route($bnRoute) }}" @if($bnActive) aria-current="page" @endif
+                       class="relative flex flex-col items-center gap-0.5 pt-2 pb-1.5 text-[11px] font-semibold transition {{ $bnActive ? 'text-[#1f6fe5]' : 'text-slate-400' }}">
+                        @if($bnActive)<span class="absolute top-0 h-0.5 w-8 rounded-b-full bg-[#1f6fe5]"></span>@endif
+                        <span class="relative">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">{!! $navIcons[$bnIcon] !!}</svg>
+                            @if($bnRoute === 'siswa.riwayat' && ($notifSiswa ?? 0) > 0)
+                                <span class="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-[#ef4b43] text-white text-[9px] font-bold flex items-center justify-center">{{ $notifSiswa }}</span>
+                            @endif
+                        </span>
+                        <span data-i18n>{{ $bnLabel }}</span>
+                    </a>
+                @endif
+            @endforeach
+        </div>
+    </nav>
+
+    <script>
+        (function () {
+            var t = document.getElementById('toast');
+            if (!t) return;
+            requestAnimationFrame(function () { t.classList.remove('translate-y-[-12px]', 'opacity-0'); });
+            function tutup() { t.classList.add('opacity-0', 'translate-y-[-12px]'); setTimeout(function () { t.remove(); }, 300); }
+            document.getElementById('toast-tutup').addEventListener('click', tutup);
+            setTimeout(tutup, 5000);
+        })();
+    </script>
     <script>
         (function () {
             var sidebar = document.getElementById('sidebar');

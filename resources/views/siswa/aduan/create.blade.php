@@ -88,6 +88,7 @@
         <div>
             <label for="deskripsi" class="block text-sm font-bold text-[#0f2d5c] mb-2" data-i18n>Deskripsi Kerusakan</label>
             <textarea id="deskripsi" name="deskripsi" rows="7" required placeholder="Jelaskan kondisi kerusakan yang ditemukan..." class="{{ $field }} resize-y">{{ old('deskripsi') }}</textarea>
+            <p id="deskripsi-hitung" class="text-xs text-[#5d7aa8] mt-1.5 text-right">0 karakter · minimal 10</p>
         </div>
     </div>
 
@@ -96,7 +97,7 @@
         <div class="{{ $card }} p-5 sm:p-6">
             <h2 class="font-bold text-[#0f2d5c] mb-4" data-i18n>Foto Bukti</h2>
 
-            <div class="relative rounded-xl border-2 border-dashed border-[#c9d8ee] bg-[#fafcff] hover:border-[#4a86e8] transition">
+            <div id="foto-drop" class="relative rounded-xl border-2 border-dashed border-[#c9d8ee] bg-[#fafcff] hover:border-[#4a86e8] transition">
                 <div class="flex flex-col items-center justify-center text-center px-4 py-8 text-sm text-[#5d7aa8]">
                     <svg class="w-6 h-6 text-[#4a86e8] mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>
                     <p id="foto-hint" class="leading-relaxed">Seret & lepas foto di sini,<br>atau klik untuk unggah<br>(maks. 3)</p>
@@ -118,9 +119,9 @@
             <p class="text-xs text-[#5d7aa8] mt-3" data-i18n>Terisi otomatis dari akun kamu.</p>
         </div>
 
-        <button class="w-full flex items-center justify-center gap-2 rounded-xl bg-[#0f3a7a] hover:bg-[#0b2f66] active:scale-[.99] transition text-white font-bold py-3.5 shadow-lg shadow-blue-900/20">
+        <button id="btn-kirim" class="w-full flex items-center justify-center gap-2 rounded-xl bg-[#0f3a7a] hover:bg-[#0b2f66] active:scale-[.99] transition text-white font-bold py-3.5 shadow-lg shadow-blue-900/20 disabled:opacity-70 disabled:cursor-wait">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M2.5 11.3 21 3l-4.2 18-5.3-5.6-3.4 3v-5.3zM9 12.5l7.4-5.3-9.2 6.7z" fill-rule="evenodd"/></svg>
-            Kirim Aduan
+            <span id="btn-kirim-teks">Kirim Aduan</span>
         </button>
     </div>
 </form>
@@ -161,30 +162,83 @@
     })();
 
     (function () {
+        var MAKS = 3, MAKS_MB = 2;
         var input = document.getElementById('foto');
         var box = document.getElementById('foto-preview');
         var hint = document.getElementById('foto-hint');
+        var drop = document.getElementById('foto-drop');
         var original = hint.innerHTML;
+        var daftar = [];   // berkas yang dipilih (bisa dihapus satu per satu)
 
-        input.addEventListener('change', function () {
-            var files = Array.prototype.slice.call(input.files, 0, 3);
+        function sinkron() {
+            var dt = new DataTransfer();
+            daftar.forEach(function (f) { dt.items.add(f); });
+            input.files = dt.files;
+        }
 
-            // batasi maksimal 3 foto
-            if (input.files.length > 3) {
-                var dt = new DataTransfer();
-                files.forEach(function (f) { dt.items.add(f); });
-                input.files = dt.files;
-            }
-
+        function gambar() {
             box.innerHTML = '';
-            files.forEach(function (f) {
+            daftar.forEach(function (f, i) {
+                var sel = document.createElement('div');
+                sel.className = 'relative group';
                 var img = document.createElement('img');
                 img.src = URL.createObjectURL(f);
                 img.alt = f.name;
                 img.className = 'w-full h-20 object-cover rounded-lg border border-slate-200';
-                box.appendChild(img);
+                var x = document.createElement('button');
+                x.type = 'button';
+                x.setAttribute('aria-label', 'Hapus foto ' + f.name);
+                x.className = 'absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-[#e5484d] text-white shadow flex items-center justify-center text-sm leading-none';
+                x.textContent = '×';
+                x.addEventListener('click', function () { daftar.splice(i, 1); sinkron(); gambar(); });
+                sel.appendChild(img); sel.appendChild(x); box.appendChild(sel);
             });
-            hint.innerHTML = files.length ? (files.length + ' foto dipilih — klik untuk mengganti') : original;
+            hint.textContent = daftar.length
+                ? daftar.length + ' dari ' + MAKS + ' foto dipilih. Klik untuk menambah.'
+                : '';
+            if (!daftar.length) hint.innerHTML = original;
+        }
+
+        input.addEventListener('change', function () {
+            var ditolak = [];
+            Array.prototype.forEach.call(input.files, function (f) {
+                if (f.size > MAKS_MB * 1024 * 1024) { ditolak.push(f.name); return; }
+                if (daftar.length < MAKS) daftar.push(f);
+            });
+            sinkron(); gambar();
+            if (ditolak.length) hint.textContent = 'Terlalu besar (maks. ' + MAKS_MB + ' MB): ' + ditolak.join(', ');
+        });
+
+        // sorot kotak saat file diseret ke atasnya
+        ['dragenter', 'dragover'].forEach(function (e) {
+            input.addEventListener(e, function () { drop.classList.add('border-[#4a86e8]', 'bg-[#eef5ff]'); });
+        });
+        ['dragleave', 'drop', 'change'].forEach(function (e) {
+            input.addEventListener(e, function () { drop.classList.remove('border-[#4a86e8]', 'bg-[#eef5ff]'); });
+        });
+    })();
+
+    // Penghitung karakter deskripsi
+    (function () {
+        var ta = document.getElementById('deskripsi'), info = document.getElementById('deskripsi-hitung');
+        function hitung() {
+            var n = ta.value.trim().length, cukup = n >= 10;
+            info.textContent = n + ' karakter' + (cukup ? ' ✓' : ' · minimal 10');
+            info.classList.toggle('text-[#15935a]', cukup);
+            info.classList.toggle('text-[#5d7aa8]', !cukup);
+        }
+        ta.addEventListener('input', hitung); hitung();
+    })();
+
+    // Tombol kirim: tampil "Mengirim..." agar tidak terklik dua kali
+    (function () {
+        var form = document.querySelector('form[action="{{ route('siswa.aduan.store') }}"]');
+        var btn = document.getElementById('btn-kirim'), teks = document.getElementById('btn-kirim-teks');
+        form.addEventListener('submit', function () {
+            if (!form.checkValidity()) return;
+            btn.disabled = true;
+            teks.textContent = 'Mengirim…';
+            btn.insertAdjacentHTML('afterbegin', '<svg class="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9" opacity=".9"/></svg>');
         });
     })();
 </script>
