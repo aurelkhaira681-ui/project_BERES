@@ -3,7 +3,6 @@
 @section('content')
 
 @php
-    $card = 'bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)]';
     $sel  = 'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-[#0f2d5c] outline-none focus:border-[#1f6fe5] focus:ring-2 focus:ring-[#1f6fe5]/20';
 
     $kartu = [
@@ -22,7 +21,7 @@
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M4 7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v2H4zm0 4h16v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/></svg>
         </span>
         <div>
-            <h1 class="text-2xl font-extrabold tracking-tight text-[#0f2d5c]">Data Aduan</h1>
+            <h1 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#0f2d5c]">Data Aduan</h1>
             <p class="text-[#5d7aa8] text-sm">Informasi seluruh pengaduan sarana sekolah</p>
         </div>
     </div>

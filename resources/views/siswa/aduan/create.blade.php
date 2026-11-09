@@ -3,7 +3,6 @@
 @section('content')
 
 @php
-    $card = 'bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)]';
     $field = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm outline-none placeholder:text-slate-400 focus:border-[#1e3f7f] focus:ring-2 focus:ring-[#1e3f7f]/20';
     $u = auth()->user();
     $initials = collect(explode(' ', $u->name))->filter()->map(fn ($w) => mb_substr($w, 0, 1))->take(2)->implode('');
@@ -14,7 +13,7 @@
    class="mb-3 inline-flex w-10 h-10 items-center justify-center rounded-xl bg-[#0f4a9a] text-white hover:bg-[#0b3c7f] transition">
     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
 </a>
-<h1 class="text-2xl sm:text-[30px] font-extrabold tracking-tight text-[#0f2d5c]" data-i18n>Ajukan Aduan Baru</h1>
+<h1 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#0f2d5c]" data-i18n>Ajukan Aduan Baru</h1>
 <p class="text-[#5d7aa8] mt-1 mb-6" data-i18n>Isi detail kerusakan fasilitas selengkap mungkin agar cepat ditindaklanjuti</p>
 
 @if($errors->any())

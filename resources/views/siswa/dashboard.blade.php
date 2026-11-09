@@ -3,7 +3,6 @@
 @section('content')
 
 @php
-    $card = 'bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)]';
     $now  = now('Asia/Jakarta')->locale('id');
     $jam  = $now->hour;
     $sapaan = $jam < 11 ? 'pagi' : ($jam < 15 ? 'siang' : ($jam < 18 ? 'sore' : 'malam'));

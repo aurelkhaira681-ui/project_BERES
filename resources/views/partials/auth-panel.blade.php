@@ -1,4 +1,15 @@
-{{-- Panel kiri halaman Daftar: sama dengan panel kiri halaman Masuk --}}
+{{-- Panel kiri halaman auth (Masuk, Daftar, Daftar Petugas, Lupa Kata Sandi). Satu file untuk semua; CSS-nya ikut di sini. --}}
+<style>
+    .login-illus {
+        -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent), linear-gradient(to bottom, transparent, #000 12%, #000 80%, transparent);
+        -webkit-mask-composite: source-in;
+        mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent), linear-gradient(to bottom, transparent, #000 12%, #000 80%, transparent);
+        mask-composite: intersect;
+    }
+    .login-card-float { animation: login-card-float 3.6s ease-in-out infinite; }
+    @keyframes login-card-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    @media (prefers-reduced-motion: reduce) { .login-card-float { animation: none; } }
+</style>
 <div class="hidden lg:flex relative flex-col justify-between gap-8 overflow-hidden bg-gradient-to-b from-[#1c407a] via-[#0d2f66] to-[#0c2e65] text-white px-12 xl:px-16 py-10">
     <div class="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-white/5"></div>
     <div class="absolute top-6 right-24 w-10 h-10 rounded-full bg-[#2a5091]/70"></div>

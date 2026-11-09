@@ -3,7 +3,6 @@
 @section('content')
 
 @php
-    $card = 'bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)]';
     $field = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1e3f7f] focus:ring-2 focus:ring-[#1e3f7f]/20';
     $editing = $errors->any();
     $initials = collect(explode(' ', $user->name))->filter()->map(fn ($w) => mb_substr($w, 0, 1))->take(2)->implode('');

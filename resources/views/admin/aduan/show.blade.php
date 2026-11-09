@@ -3,12 +3,12 @@
 @section('content')
 
 <a href="{{ route('admin.aduan.index') }}" class="inline-flex items-center gap-1 text-sm font-semibold text-[#1f6fe5] mb-3">← Kembali ke Data Aduan</a>
-<h1 class="text-xl font-extrabold text-[#0f2d5c]">{{ Str::limit($aduan->deskripsi, 50) }}</h1>
+<h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0f2d5c]">{{ Str::limit($aduan->deskripsi, 50) }}</h1>
 <p class="text-slate-500 text-sm mb-6">Diajukan oleh {{ $aduan->user->name }} · {{ $aduan->user->kelas }} · {{ $aduan->created_at->format('d M Y, H.i') }}</p>
 
 <div class="grid lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-6">
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)] p-5">
+        <div class="{{ $card }} p-5">
             <h2 class="font-semibold mb-4">Detail Kerusakan</h2>
             <div class="grid grid-cols-1 min-[420px]:grid-cols-2 gap-4 mb-4 text-sm [&>div]:min-w-0 [&_p]:break-words">
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Kategori</p><p class="font-medium">{{ $aduan->kategori->icon }} {{ $aduan->kategori->nama }}</p></div>
@@ -27,7 +27,7 @@
             @endif
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)] p-5">
+        <div class="{{ $card }} p-5">
             <h2 class="font-semibold mb-3">Riwayat Status</h2>
             <p class="text-sm"><span class="text-amber-500">●</span> Menunggu verifikasi — {{ $aduan->created_at->format('d M Y, H.i') }}</p>
             @if($aduan->diverifikasi_at)
@@ -41,7 +41,7 @@
 
     <div class="space-y-4">
         {{-- Penugasan teknisi --}}
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)] p-5">
+        <div class="{{ $card }} p-5">
             <div class="flex items-center justify-between gap-2 mb-3">
                 <h2 class="font-semibold">Penugasan Teknisi</h2>
                 <span class="rounded-full bg-[#e6effb] text-[#1d4f9c] text-xs font-semibold px-2.5 py-1">{{ \App\Models\Teknisi::singkat($aduan->lokasi->jurusan) }}</span>
@@ -84,7 +84,7 @@
         </div>
 
         @if($aduan->status === 'pending')
-            <div class="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)] p-5">
+            <div class="{{ $card }} p-5">
                 <h2 class="font-semibold mb-3">Tindak Lanjut</h2>
                 @if(!$aduan->teknisi_id)
                     <p class="text-xs text-amber-600 mb-2">Tugaskan teknisi terlebih dahulu sebelum menyetujui.</p>
@@ -101,7 +101,7 @@
                 </form>
             </div>
         @elseif($aduan->status === 'approved')
-            <div class="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)] p-5">
+            <div class="{{ $card }} p-5">
                 <h2 class="font-semibold mb-3">Tindak Lanjut</h2>
                 <form method="POST" action="{{ route('admin.aduan.selesai', $aduan) }}">
                     @csrf
@@ -111,13 +111,13 @@
         @endif
 
         @if($aduan->catatan_admin)
-            <div class="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)] p-5 text-sm">
+            <div class="{{ $card }} p-5 text-sm">
                 <p class="text-xs uppercase text-slate-400 mb-1">Catatan Admin</p>
                 {{ $aduan->catatan_admin }}
             </div>
         @endif
 
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)] p-5">
+        <div class="{{ $card }} p-5">
             <h2 class="font-semibold mb-3">Data Pelapor</h2>
             <div class="flex items-center gap-3 mb-3">
                 <div class="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-sm font-semibold">

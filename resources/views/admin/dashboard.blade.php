@@ -3,7 +3,6 @@
 @section('content')
 
 @php
-    $card = 'bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)]';
     $namaDepan = explode(' ', trim(auth()->user()->name))[0];
     $tanggal = now()->locale('id')->translatedFormat('l, j F Y');
     $tren = $stats['tren_total'];

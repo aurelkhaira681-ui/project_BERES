@@ -1,6 +1,6 @@
 {{-- Kartu Preferensi (Notifikasi, Tema, Bahasa) — dipakai di halaman Akun Saya siswa & petugas --}}
 @php
-    $kartuPref = 'bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)]';
+    $kartuPref = $card;
     $prefItems = [
         ['notif',   'Notifikasi', 'Atur notifikasi aduan', '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"/>', 'text-slate-400', null],
         ['tema',    'Tema',       'Mode Terang',           '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>', 'text-[#6a8fc9]', 'tema'],

@@ -4,7 +4,7 @@
 
 <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
     <div>
-        <h1 class="text-xl font-bold">{{ Str::limit($aduan->deskripsi, 50) }}</h1>
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0f2d5c]">{{ Str::limit($aduan->deskripsi, 50) }}</h1>
         <p class="text-slate-500 text-sm">Tiket #{{ $aduan->kode_tiket }} · Diajukan {{ $aduan->created_at->format('d M Y, H.i') }}</p>
     </div>
     @include('partials.status-badge', ['item' => $aduan])
@@ -12,7 +12,7 @@
 
 <div class="grid lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-6">
-        <div class="bg-white border rounded-xl p-5">
+        <div class="{{ $card }} p-5">
             <h2 class="font-semibold mb-4">Progres Penanganan</h2>
             <ul class="space-y-4 text-sm">
                 <li class="flex gap-3">
@@ -36,7 +36,7 @@
             </ul>
         </div>
 
-        <div class="bg-white border rounded-xl p-5">
+        <div class="{{ $card }} p-5">
             <h2 class="font-semibold mb-4">Detail Kerusakan</h2>
             <div class="grid grid-cols-1 min-[420px]:grid-cols-2 gap-4 mb-4 text-sm [&>div]:min-w-0 [&_p]:break-words">
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Kategori</p><p class="font-medium">{{ $aduan->kategori->icon }} {{ $aduan->kategori->nama }}</p></div>
@@ -63,7 +63,7 @@
     </div>
 
     <div class="space-y-4">
-        <div class="bg-white border rounded-xl p-5">
+        <div class="{{ $card }} p-5">
             <h2 class="font-semibold mb-3">Data Pelapor</h2>
             <div class="flex items-center gap-3 mb-3">
                 <div class="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-sm font-semibold">

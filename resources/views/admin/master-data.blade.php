@@ -3,7 +3,6 @@
 @section('content')
 
 @php
-    $card  = 'bg-white rounded-2xl border border-slate-100 shadow-[0_2px_14px_rgba(20,50,105,0.06)]';
     $field = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1f6fe5] focus:ring-2 focus:ring-[#1f6fe5]/20';
     $tabs  = [
         'kategori' => ['Kategori Kerusakan', $kategori->count()],
@@ -24,7 +23,7 @@
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C7 3 3.5 4.5 3.5 6.5S7 10 12 10s8.5-1.5 8.5-3.5S17 3 12 3zM3.5 9v4c0 2 3.5 3.5 8.5 3.5s8.5-1.5 8.5-3.5V9c0 2-3.5 3.5-8.5 3.5S3.5 11 3.5 9zm0 6.5v2c0 2 3.5 3.5 8.5 3.5s8.5-1.5 8.5-3.5v-2c0 2-3.5 3.5-8.5 3.5s-8.5-1.5-8.5-3.5z"/></svg>
         </span>
         <div>
-            <h1 class="text-2xl font-extrabold tracking-tight text-[#0f2d5c]">Master Data</h1>
+            <h1 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-[#0f2d5c]">Master Data</h1>
             <p class="text-[#5d7aa8] text-sm">Kelola kategori, lokasi, teknisi, dan data pengguna</p>
         </div>
     </div>
