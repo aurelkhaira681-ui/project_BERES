@@ -31,5 +31,6 @@
     "Teknisi ditambahkan.": "Technician added.",
     "Teknisi diperbarui.": "Technician updated.",
     "Teknisi dihapus.": "Technician deleted.",
-    "Teknisi tidak dapat dihapus karena masih punya riwayat aduan. Nonaktifkan saja (cuti) lewat tombol edit.": "The technician cannot be deleted because they still have complaint history. Mark them as on leave with the edit button instead."
+    "Teknisi tidak dapat dihapus karena masih punya riwayat aduan. Nonaktifkan saja (cuti) lewat tombol edit.": "The technician cannot be deleted because they still have complaint history. Mark them as on leave with the edit button instead.",
+    "Unduh Bukti Laporan (PDF)": "Download Report Receipt (PDF)"
 }

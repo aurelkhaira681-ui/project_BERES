@@ -148,6 +148,9 @@ class AduanController extends Controller
 
     public function setujui(Request $request, Aduan $aduan)
     {
+        // Hanya tiket yang masih menunggu verifikasi yang boleh disetujui
+        abort_unless($aduan->status === 'pending', 403, __('Hanya aduan berstatus pending yang dapat disetujui.'));
+
         if (! $aduan->teknisi_id) {
             return back()->with('error', __('Tugaskan teknisi terlebih dahulu sebelum menyetujui aduan.'));
         }
@@ -163,6 +166,9 @@ class AduanController extends Controller
 
     public function tolak(Request $request, Aduan $aduan)
     {
+        // Tiket yang sudah selesai / sudah ditolak tidak boleh diubah lagi
+        abort_unless(in_array($aduan->status, ['pending', 'approved'], true), 403, __('Aduan ini sudah tidak dapat ditolak.'));
+
         $request->validate(['catatan_admin' => ['required', 'string']]);
 
         $aduan->update([
@@ -202,6 +208,7 @@ class AduanController extends Controller
 
     public function destroy(Aduan $aduan)
     {
+        $aduan->hapusFile(); // hapus juga foto bukti & foto hasil perbaikan
         $aduan->delete();
 
         return redirect()->route('admin.dashboard')->with('success', __('Tiket aduan dihapus.'));

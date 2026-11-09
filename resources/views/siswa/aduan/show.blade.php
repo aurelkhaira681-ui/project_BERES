@@ -17,8 +17,8 @@
     @include('partials.status-badge', ['item' => $aduan])
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="lg:col-span-2 space-y-6">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+    <div class="lg:col-span-2 lg:row-start-1 space-y-6">
         <div class="{{ $card }} p-5">
             <h2 class="font-semibold mb-5">Progres Penanganan</h2>
 
@@ -81,10 +81,14 @@
                 @endforeach
             </ol>
         </div>
+    </div>
 
+    {{-- Detail Kerusakan & Hasil Perbaikan: selebar halaman, berdampingan di layar lebar, atas-bawah di HP --}}
+    @php $adaHasil = $aduan->status === 'selesai' && (filled($aduan->catatan_perbaikan) || !empty($aduan->foto_selesai)); @endphp
+    <div class="grid grid-cols-1 {{ $adaHasil ? 'lg:grid-cols-2' : '' }} gap-6 items-start lg:col-span-3 lg:row-start-2">
         <div class="{{ $card }} p-5">
             <h2 class="font-semibold mb-4">Detail Kerusakan</h2>
-            <div class="grid grid-cols-1 min-[420px]:grid-cols-2 gap-4 mb-4 text-sm [&>div]:min-w-0 [&_p]:break-words">
+            <div class="grid grid-cols-1 min-[420px]:grid-cols-2 {{ $adaHasil ? 'lg:grid-cols-1 xl:grid-cols-2' : '' }} gap-4 mb-4 text-sm [&>div]:min-w-0 [&_p]:break-words">
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Kategori</p><p class="font-medium">{{ $aduan->kategori->icon }} {{ $aduan->kategori->nama }}</p></div>
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Lokasi</p><p class="font-medium">{{ $aduan->lokasi->nama_lengkap }}</p></div>
                 <div><p class="text-slate-400 text-xs uppercase mb-1">Teknisi</p><p class="font-medium">{{ $aduan->teknisi?->nama ?? 'Ditentukan petugas' }}@if($aduan->teknisi) <span class="text-xs text-slate-400 font-normal">· {{ \App\Models\Teknisi::singkat($aduan->teknisi->jurusan) }}</span>@endif</p></div>
@@ -92,7 +96,7 @@
             <p class="text-sm text-slate-600 mb-4">{{ $aduan->deskripsi }}</p>
 
             @if(!empty($aduan->foto))
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-3 {{ $adaHasil ? 'lg:grid-cols-2 xl:grid-cols-3' : 'lg:grid-cols-4' }} gap-3">
                     @foreach($aduan->foto as $foto)
                         <img src="{{ asset('storage/' . $foto) }}" class="rounded-lg h-28 w-full object-cover">
                     @endforeach
@@ -114,7 +118,7 @@
                     <p class="text-sm text-slate-600 mb-3">{{ $aduan->catatan_perbaikan }}</p>
                 @endif
                 @if(!empty($aduan->foto_selesai))
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 {{ $adaHasil ? 'lg:grid-cols-2 xl:grid-cols-3' : 'lg:grid-cols-4' }} gap-3">
                         @foreach($aduan->foto_selesai as $foto)
                             <img src="{{ asset('storage/' . $foto) }}" alt="Foto hasil perbaikan" class="rounded-lg h-28 w-full object-cover">
                         @endforeach
@@ -124,7 +128,7 @@
         @endif
     </div>
 
-    <div class="space-y-4">
+    <div class="space-y-4 lg:col-start-3 lg:row-start-1">
         <div class="{{ $card }} p-5">
             <h2 class="font-semibold mb-3">Data Pelapor</h2>
             <div class="flex items-center gap-3 mb-3">
@@ -139,6 +143,11 @@
             </div>
         </div>
 
+        <a href="{{ route('siswa.aduan.bukti', $aduan) }}" class="w-full inline-flex items-center justify-center gap-2 bg-[#16305c] text-white rounded-lg py-2.5 font-medium hover:bg-[#0f2d5c] transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>
+            {{ __('Unduh Bukti Laporan (PDF)') }}
+        </a>
+
         @if($aduan->status === 'pending')
             <form method="POST" action="{{ route('siswa.aduan.batalkan', $aduan) }}" onsubmit="return confirm('Batalkan pengajuan ini?')">
                 @csrf @method('DELETE')
@@ -149,6 +158,10 @@
         @endif
     </div>
 </div>
+@if(session('unduh_bukti'))
+    {{-- Laporan baru saja dikirim: mulai unduh bukti PDF otomatis (tombol di sidebar sebagai cadangan) --}}
+    <iframe src="{{ route('siswa.aduan.bukti', $aduan) }}" class="hidden" aria-hidden="true" tabindex="-1"></iframe>
+@endif
 <script>
     // Tombol "Salin" nomor tiket
     document.querySelectorAll('[data-salin]').forEach(function (btn) {

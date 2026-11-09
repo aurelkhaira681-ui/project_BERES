@@ -46,6 +46,29 @@ class AlurAduanTest extends TestCase
         $this->assertCount(1, $aduan->foto);
     }
 
+    public function test_siswa_bisa_mengunduh_bukti_laporan_pdf_dan_orang_lain_tidak(): void
+    {
+        Storage::fake('public');
+        ['siswa' => $siswa, 'kategori' => $k, 'lokasi' => $l] = $this->siapkan();
+
+        $this->actingAs($siswa)->post(route('siswa.aduan.store'), [
+            'kategori_kerusakan_id' => $k->id,
+            'lokasi_id' => $l->id,
+            'tanggal_kejadian' => now()->toDateString(),
+            'deskripsi' => 'Lampu kelas mati total sejak pagi.',
+            'foto' => [UploadedFile::fake()->image('bukti.jpg')],
+        ])->assertSessionHas('unduh_bukti');
+
+        $aduan = Aduan::first();
+
+        $res = $this->actingAs($siswa)->get(route('siswa.aduan.bukti', $aduan))->assertOk();
+        $this->assertSame('application/pdf', $res->headers->get('content-type'));
+        $this->assertStringContainsString('Bukti-Laporan-' . $aduan->kode_tiket . '.pdf', $res->headers->get('content-disposition'));
+
+        $lain = User::create(['role' => 'siswa', 'name' => 'Lain', 'email' => 'l@test.id', 'password' => 'password', 'nisn' => '0000000002', 'kelas' => 'XII RPL B']);
+        $this->actingAs($lain)->get(route('siswa.aduan.bukti', $aduan))->assertForbidden();
+    }
+
     public function test_admin_menyelesaikan_aduan_dengan_foto_hasil_perbaikan(): void
     {
         Storage::fake('public');

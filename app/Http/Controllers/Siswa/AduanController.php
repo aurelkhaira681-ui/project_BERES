@@ -7,7 +7,9 @@ use App\Models\Aduan;
 use App\Models\KategoriKerusakan;
 use App\Models\Lokasi;
 use App\Models\Teknisi;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AduanController extends Controller
 {
@@ -111,9 +113,37 @@ class AduanController extends Controller
             'status' => 'pending',
         ]);
 
+        // 'unduh_bukti' -> halaman detail otomatis memulai unduhan bukti laporan (PDF)
         return redirect()
             ->route('siswa.aduan.show', $aduan)
-            ->with('success', __('Aduan :kode berhasil dikirim.', ['kode' => $aduan->kode_tiket]));
+            ->with('success', __('Aduan :kode berhasil dikirim.', ['kode' => $aduan->kode_tiket]))
+            ->with('unduh_bukti', true);
+    }
+
+    // Bukti laporan (PDF) milik siswa yang bersangkutan
+    public function bukti(Aduan $aduan)
+    {
+        abort_unless($aduan->user_id === auth()->id(), 403);
+
+        $aduan->load(['user', 'kategori', 'lokasi', 'teknisi']);
+
+        // Foto disisipkan sebagai data URI supaya tidak bergantung pada symlink storage / URL publik.
+        $foto = [];
+        foreach (array_slice($aduan->foto ?? [], 0, 3) as $path) {
+            $disk = Storage::disk('public');
+            if ($disk->exists($path)) {
+                $mime = $disk->mimeType($path) ?: 'image/jpeg';
+                $foto[] = 'data:' . $mime . ';base64,' . base64_encode($disk->get($path));
+            }
+        }
+
+        $pdf = Pdf::loadView('siswa.aduan.bukti-pdf', [
+            'aduan' => $aduan,
+            'foto' => $foto,
+            'dicetak' => now()->timezone('Asia/Jakarta'),
+        ])->setPaper('a4');
+
+        return $pdf->download('Bukti-Laporan-' . $aduan->kode_tiket . '.pdf');
     }
 
     // Halaman detail tiket + progres penanganan
@@ -131,6 +161,7 @@ class AduanController extends Controller
         abort_unless($aduan->user_id === auth()->id(), 403);
         abort_unless($aduan->status === 'pending', 403, __('Aduan yang sudah diverifikasi tidak dapat dibatalkan.'));
 
+        $aduan->hapusFile(); // hapus foto bukti dari penyimpanan
         $aduan->delete();
 
         return redirect()->route('siswa.riwayat')->with('success', __('Pengajuan dibatalkan.'));

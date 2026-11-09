@@ -46,6 +46,7 @@ Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->grou
     Route::get('/aduan/create', [SiswaAduanController::class, 'create'])->name('aduan.create');
     Route::post('/aduan', [SiswaAduanController::class, 'store'])->name('aduan.store');
     Route::get('/aduan/{aduan}', [SiswaAduanController::class, 'show'])->name('aduan.show');
+    Route::get('/aduan/{aduan}/bukti', [SiswaAduanController::class, 'bukti'])->name('aduan.bukti');
     Route::delete('/aduan/{aduan}', [SiswaAduanController::class, 'batalkan'])->name('aduan.batalkan');
 
     Route::get('/riwayat', [SiswaAduanController::class, 'riwayat'])->name('riwayat');

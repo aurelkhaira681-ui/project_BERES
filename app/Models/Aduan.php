@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Aduan extends Model
@@ -40,12 +41,30 @@ class Aduan extends Model
 
     protected static function booted(): void
     {
+        // Kode tiket sementara dulu (kolom wajib unik), lalu diganti kode final
+        // berdasarkan id asli supaya tidak bentrok kalau dua aduan masuk bersamaan.
         static::creating(function (Aduan $aduan) {
             if (empty($aduan->kode_tiket)) {
-                $lastId = (int) (static::max('id') ?? 0) + 1;
-                $aduan->kode_tiket = 'BRS-' . str_pad($lastId, 4, '0', STR_PAD_LEFT);
+                $aduan->kode_tiket = 'TMP-' . Str::uuid();
             }
         });
+
+        static::created(function (Aduan $aduan) {
+            if (str_starts_with($aduan->kode_tiket, 'TMP-')) {
+                $aduan->kode_tiket = 'BRS-' . str_pad($aduan->id, 4, '0', STR_PAD_LEFT);
+                $aduan->saveQuietly();
+            }
+        });
+    }
+
+    /** Hapus semua file foto (bukti aduan + bukti perbaikan) milik tiket ini dari storage. */
+    public function hapusFile(): void
+    {
+        $files = array_merge($this->foto ?? [], $this->foto_selesai ?? []);
+
+        if ($files) {
+            Storage::disk('public')->delete($files);
+        }
     }
 
     public function user(): BelongsTo
