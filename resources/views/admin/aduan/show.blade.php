@@ -37,6 +37,22 @@
                 <p class="text-sm mt-2"><span class="text-blue-500">●</span> Selesai diperbaiki — {{ $aduan->selesai_at->format('d M Y, H.i') }}</p>
             @endif
         </div>
+
+        @if($aduan->status === 'selesai' && (filled($aduan->catatan_perbaikan) || !empty($aduan->foto_selesai)))
+            <div class="{{ $card }} p-5">
+                <h2 class="font-semibold mb-3">Hasil Perbaikan</h2>
+                @if($aduan->catatan_perbaikan)
+                    <p class="text-sm text-slate-600 mb-3">{{ $aduan->catatan_perbaikan }}</p>
+                @endif
+                @if(!empty($aduan->foto_selesai))
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        @foreach($aduan->foto_selesai as $foto)
+                            <img src="{{ asset('storage/' . $foto) }}" alt="Foto hasil perbaikan" class="rounded-lg h-28 w-full object-cover">
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        @endif
     </div>
 
     <div class="space-y-4">
@@ -103,8 +119,13 @@
         @elseif($aduan->status === 'approved')
             <div class="{{ $card }} p-5">
                 <h2 class="font-semibold mb-3">Tindak Lanjut</h2>
-                <form method="POST" action="{{ route('admin.aduan.selesai', $aduan) }}">
+                <form method="POST" action="{{ route('admin.aduan.selesai', $aduan) }}" enctype="multipart/form-data">
                     @csrf
+                    <textarea name="catatan_perbaikan" rows="2" maxlength="500" class="w-full border rounded-lg px-3 py-2 text-sm mb-2" placeholder="Catatan perbaikan (opsional). Contoh: Kran diganti baru."></textarea>
+                    <label class="block text-xs text-slate-500 mb-1">Foto hasil perbaikan (opsional, maks. 3 foto, 2 MB)</label>
+                    <input type="file" name="foto_selesai[]" accept="image/*" multiple class="block w-full text-sm mb-3 file:mr-3 file:rounded-lg file:border-0 file:bg-[#e6effb] file:text-[#1d4f9c] file:font-semibold file:px-3 file:py-1.5">
+                    @error('foto_selesai.*')<p class="text-xs text-red-600 mb-2">{{ $message }}</p>@enderror
+                    @error('foto_selesai')<p class="text-xs text-red-600 mb-2">{{ $message }}</p>@enderror
                     <button class="w-full bg-[#0f3a9a] text-white rounded-xl py-2.5 font-bold hover:bg-[#0b2f7e]">Tandai Selesai Diperbaiki</button>
                 </form>
             </div>

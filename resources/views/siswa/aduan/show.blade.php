@@ -36,6 +36,11 @@
                         $ditolak ? 'rejected' : ($verif ? 'done' : 'current'),
                     ],
                     [
+                        $aduan->teknisi && $verif && ! $ditolak ? 'Teknisi Menangani' : 'Penugasan Teknisi',
+                        $ditolak ? 'Tidak dilanjutkan' : ($verif && $aduan->teknisi ? $aduan->teknisi->nama . ' · ' . \App\Models\Teknisi::singkat($aduan->teknisi->jurusan) : 'Ditentukan setelah verifikasi'),
+                        $ditolak ? 'todo' : ($verif ? 'done' : 'todo'),
+                    ],
+                    [
                         'Perbaikan Selesai',
                         $ditolak ? 'Tidak dilanjutkan' : ($aduan->selesai_at?->format($fmt) ?? 'Menunggu tindak lanjut'),
                         $ditolak ? 'todo' : ($selesai ? 'done' : ($verif ? 'current' : 'todo')),
@@ -101,6 +106,22 @@
                 </div>
             @endif
         </div>
+
+        @if($aduan->status === 'selesai' && (filled($aduan->catatan_perbaikan) || !empty($aduan->foto_selesai)))
+            <div class="{{ $card }} p-5">
+                <h2 class="font-semibold mb-3">Hasil Perbaikan</h2>
+                @if($aduan->catatan_perbaikan)
+                    <p class="text-sm text-slate-600 mb-3">{{ $aduan->catatan_perbaikan }}</p>
+                @endif
+                @if(!empty($aduan->foto_selesai))
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        @foreach($aduan->foto_selesai as $foto)
+                            <img src="{{ asset('storage/' . $foto) }}" alt="Foto hasil perbaikan" class="rounded-lg h-28 w-full object-cover">
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        @endif
     </div>
 
     <div class="space-y-4">

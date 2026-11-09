@@ -174,13 +174,27 @@ class AduanController extends Controller
         return back()->with('success', __('Aduan :kode ditolak.', ['kode' => $aduan->kode_tiket]));
     }
 
-    public function selesai(Aduan $aduan)
+    public function selesai(Request $request, Aduan $aduan)
     {
         abort_unless($aduan->status === 'approved', 403, __('Hanya aduan yang sudah disetujui yang dapat ditandai selesai.'));
+
+        $request->validate([
+            'catatan_perbaikan' => ['nullable', 'string', 'max:500'],
+            'foto_selesai' => ['nullable', 'array', 'max:3'],
+            'foto_selesai.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ]);
+
+        // Foto bukti hasil perbaikan (opsional, maksimal 3)
+        $fotoPaths = [];
+        foreach ($request->file('foto_selesai', []) as $file) {
+            $fotoPaths[] = $file->store('bukti-perbaikan', 'public');
+        }
 
         $aduan->update([
             'status' => 'selesai',
             'selesai_at' => now(),
+            'catatan_perbaikan' => $request->input('catatan_perbaikan'),
+            'foto_selesai' => $fotoPaths,
         ]);
 
         return back()->with('success', __('Aduan :kode ditandai selesai.', ['kode' => $aduan->kode_tiket]));

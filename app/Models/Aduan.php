@@ -22,14 +22,17 @@ class Aduan extends Model
         'tanggal_kejadian',
         'deskripsi',
         'foto',
+        'foto_selesai',
         'status',
         'catatan_admin',
+        'catatan_perbaikan',
         'diverifikasi_at',
         'selesai_at',
     ];
 
     protected $casts = [
         'foto' => 'array',
+        'foto_selesai' => 'array',
         'tanggal_kejadian' => 'datetime',
         'diverifikasi_at' => 'datetime',
         'selesai_at' => 'datetime',
