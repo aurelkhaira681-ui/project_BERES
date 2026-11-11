@@ -31,12 +31,12 @@
 @endphp
 
 {{-- ===== HEADER ===== --}}
-<div class="flex flex-wrap items-start justify-between gap-3 mb-6">
-    <div class="min-w-0">
+<div class="flex flex-nowrap items-start justify-between gap-3 mb-6">
+    <div class="min-w-0 flex-1">
         <h1 class="text-2xl sm:text-[30px] font-extrabold tracking-tight text-[#0f2d5c]">Selamat datang, {{ $namaDepan }}</h1>
         <p class="text-[#5d7aa8] mt-1">Kelola pengaduan sarana sekolah dengan mudah dan cepat.</p>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 shrink-0">
         <div class="hidden sm:inline-flex items-center gap-2 rounded-2xl bg-white/80 border border-slate-100 px-4 h-12 text-sm font-semibold text-[#0f2d5c]">
             <svg class="w-4 h-4 text-[#1f6fe5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
             {{ $tanggal }}

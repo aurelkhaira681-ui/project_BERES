@@ -40,23 +40,23 @@
         <h1 class="text-2xl sm:text-[30px] font-extrabold tracking-tight text-[#0f2d5c]">Selamat {{ $sapaan }}, {{ $namaDepan }}</h1>
         <p class="text-[#5d7aa8] mt-1">Lihat pembaruan aduan sarana yang sudah kamu ajukan.</p>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="contents sm:flex sm:items-center sm:gap-3">
         <div class="hidden sm:inline-flex items-center gap-2 rounded-2xl bg-white/80 border border-slate-100 px-4 h-12 text-sm font-semibold text-[#0f2d5c]">
             <svg class="w-4 h-4 text-[#1f6fe5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
             {{ $now->translatedFormat('l, d F Y') }}
         </div>
 
         {{-- Lonceng notifikasi status --}}
-        <div class="relative" id="notif-wrap">
+        <div class="contents md:block md:relative" id="notif-wrap">
             <button type="button" id="notif-btn" aria-label="Notifikasi status aduan" aria-haspopup="true" aria-expanded="false"
-                    class="relative w-12 h-12 rounded-2xl bg-white/80 hover:bg-white border border-slate-100 text-[#1f4f9c] flex items-center justify-center transition">
+                    class="hidden md:flex relative w-12 h-12 rounded-2xl bg-white/80 hover:bg-white border border-slate-100 text-[#1f4f9c] items-center justify-center transition">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a6 6 0 0 0-6 6v4l-1.7 3.4A1 1 0 0 0 5.2 17h13.6a1 1 0 0 0 .9-1.6L18 12V8a6 6 0 0 0-6-6zm-2 17a2 2 0 0 0 4 0z"/></svg>
                 @if($notifBaru > 0)
                     <span class="js-notif-badge absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1 rounded-full bg-[#ef4b43] text-white text-[11px] font-bold flex items-center justify-center ring-2 ring-white">{{ $notifBaru }}</span>
                 @endif
             </button>
 
-            <div id="notif-panel" class="hidden absolute right-0 top-[calc(100%+10px)] z-40 w-[min(23rem,calc(100vw-2rem))] rounded-3xl bg-white border border-slate-100 shadow-[0_20px_60px_rgba(20,50,105,0.28)] overflow-hidden text-slate-800">
+            <div id="notif-panel" class="hidden fixed left-4 right-4 top-16 md:absolute md:left-auto md:right-0 md:top-[calc(100%+10px)] z-40 md:w-[23rem] rounded-3xl bg-white border border-slate-100 shadow-[0_20px_60px_rgba(20,50,105,0.28)] overflow-hidden text-slate-800">
                 <div class="flex items-center justify-between gap-2 px-4 py-3.5 border-b border-slate-100">
                     <p class="font-extrabold text-sm text-[#0f2d5c]">Notifikasi Aduan</p>
                     <span class="text-[11px] font-bold {{ $notifBaru > 0 ? 'text-[#ef4b43] bg-[#fdeceb]' : 'text-slate-400 bg-slate-100' }} rounded-full px-2 py-0.5">{{ $notifBaru > 0 ? $notifBaru . ' baru' : 'Sudah dibaca' }}</span>
@@ -279,6 +279,7 @@
         document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) tutup(); });
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape') tutup(); });
         if (location.hash === '#notif') buka();
+        window.addEventListener('hashchange', function () { if (location.hash === '#notif') buka(); });
     })();
 </script>
 @endsection
